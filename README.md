@@ -17,3 +17,5 @@ CREATE TABLE products (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL, -- Coluna created_at com timestamp, aceita nulo
     quantity INT NULL                              -- Coluna quantity como inteiro, aceita valores nulos
 );
+
+UPDATE users SET role = 'admin' WHERE username = 'nome_do_usuario';
