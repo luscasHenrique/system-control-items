@@ -1,6 +1,7 @@
 <?php include 'menu.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <!-- Biblioteca para leitura de QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" integrity="sha512-r6rDA7W6ZeQhvl8S7yRVQUKVHdexq+GAlNkNNqVC7YyIV+NwqCTJe2hDWCiffTyRNOeGEzRRJ9ifvRm/HCzGYg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
+
 <body class="bg-gray-100">
     <div class="max-w-3xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-4 text-center">Scan QR Code</h1>
@@ -45,9 +47,16 @@
 
         // Inicializar o Html5Qrcode
         const html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "environment" }, // Usar câmera traseira
-            { fps: 10, qrbox: { width: 200, height: 200 } },
+        html5QrCode.start({
+                facingMode: "environment"
+            }, // Usar câmera traseira
+            {
+                fps: 10,
+                qrbox: {
+                    width: 200,
+                    height: 200
+                }
+            },
             onScanSuccess,
             onScanError
         ).catch(err => {
@@ -68,7 +77,7 @@
                             style: 'currency',
                             currency: 'BRL'
                         });
-                        document.getElementById('productQuantity').innerText = data.product.quantity; 
+                        document.getElementById('productQuantity').innerText = data.product.quantity;
                         document.getElementById('productCompany').innerText = data.product.company;
                         document.getElementById('productDescription').innerText = data.product.description;
                         document.getElementById('productInfo').classList.remove('hidden');
@@ -88,7 +97,7 @@
             document.getElementById('productId').innerText = '';
             document.getElementById('productName').innerText = '';
             document.getElementById('productPrice').innerText = '';
-            document.getElementById('productQuantity').innerText = ''; 
+            document.getElementById('productQuantity').innerText = '';
             document.getElementById('productCompany').innerText = '';
             document.getElementById('productDescription').innerText = '';
             document.getElementById('productInfo').classList.add('hidden');
@@ -97,4 +106,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -1,3 +1,11 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+?>
+
 <?php include 'menu.php'; ?>
 <?php require 'src/db_connection.php'; ?>
 <!DOCTYPE html>

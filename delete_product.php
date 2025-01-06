@@ -18,4 +18,3 @@ try {
 } catch (PDOException $e) {
     die("Erro ao excluir o produto: " . $e->getMessage());
 }
-?>

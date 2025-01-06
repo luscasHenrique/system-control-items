@@ -1,8 +1,8 @@
 
 <?php
-$db_name = "u328979044_lunaabaDB";
+$db_name = "u328979044_teste";
 $db_host = "srv803.hstgr.io";
-$db_user = "u328979044_lunasjclunaab";
+$db_user = "u328979044_teste";
 $db_pass = "Lun@081828";
 
 try {

@@ -44,12 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Product</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 flex items-center justify-center h-screen">
     <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
         <h1 class="text-2xl font-bold mb-6 text-center">Edit Product</h1>
@@ -61,12 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="number" id="price" name="price" step="0.01" value="<?= htmlspecialchars($product['price']); ?>" class="w-full border border-gray-300 rounded-lg p-2 mb-4" required>
 
             <label for="quantity" class="block font-bold mb-2">Quantity:</label>
-            <input 
-                type="number" 
-                id="quantity" 
-                name="quantity" 
-                value="<?= htmlspecialchars($product['quantity']); ?>" 
-                class="w-full border border-gray-300 rounded-lg p-2 mb-4" 
+            <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                value="<?= htmlspecialchars($product['quantity']); ?>"
+                class="w-full border border-gray-300 rounded-lg p-2 mb-4"
                 required>
 
             <label for="company" class="block font-bold mb-2">Company:</label>
@@ -79,4 +81,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 </body>
+
 </html>

@@ -3,6 +3,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 </head>
+
 <body class="bg-gray-100">
     <div class="max-w-7xl mx-auto mt-10">
         <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">Export Product Cards</h1>
@@ -47,8 +49,8 @@
                             <input type="checkbox" name="selected[]" value="<?= $row['id']; ?>">
                             Selecionar
                         </label>
-                        <div id="card-<?= $row['id']; ?>" 
-                            class="flex flex-col items-center gap-0 " 
+                        <div id="card-<?= $row['id']; ?>"
+                            class="flex flex-col items-center gap-0 "
                             style="background-color: transparent; width: 103mm; height: 25mm;">
                             <div class="flex items-center justify-center space-x-4">
                                 <img src="assets/img/Logo.png" alt="Logo" class="h-[70px] w-[70px]">
@@ -104,7 +106,9 @@
                 return;
             }
 
-           const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'letter'); // Dimensões da folha Letter (216x279 mm)
             const cardWidth = 101.6; // Largura da etiqueta em mm
             const cardHeight = 25; // Altura da etiqueta em mm
@@ -125,7 +129,9 @@
                 if (!cardElement) continue;
 
                 // Renderizar o cartão completo
-                const canvas = await html2canvas(cardElement, { scale: 2 });
+                const canvas = await html2canvas(cardElement, {
+                    scale: 2
+                });
                 const imgData = canvas.toDataURL('image/png');
 
                 pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
@@ -148,4 +154,5 @@
         });
     </script>
 </body>
+
 </html>
