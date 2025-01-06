@@ -26,7 +26,7 @@ if (!isset($_SESSION['user_id'])) {
         <input
             type="text"
             id="searchInput"
-            placeholder="Search for products..."
+            placeholder="Search for products or users..."
             class="w-full border border-gray-300 rounded-lg p-2 mb-4 text-center">
 
         <!-- Contêiner da Tabela com Overflow -->
@@ -41,6 +41,8 @@ if (!isset($_SESSION['user_id'])) {
                         <th class="border border-gray-300 p-2">Quantity</th>
                         <th class="border border-gray-300 p-2">Company</th>
                         <th class="border border-gray-300 p-2">Description</th>
+                        <th class="border border-gray-300 p-2">User</th>
+                        <th class="border border-gray-300 p-2">Total Value</th>
                         <th class="border border-gray-300 p-2">Actions</th>
                     </tr>
                 </thead>
@@ -56,8 +58,25 @@ if (!isset($_SESSION['user_id'])) {
                     $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
                     $totalPages = ceil($totalRecords / $limit);
 
-                    // Buscar registros da página atual
-                    $stmt = $conn->prepare("SELECT id, name, price, quantity, company, description FROM products LIMIT :limit OFFSET :offset");
+                    // Buscar registros da página atual com o nome do usuário e valor total
+                    $stmt = $conn->prepare("
+                        SELECT 
+                            p.id, 
+                            p.name, 
+                            p.price, 
+                            p.quantity, 
+                            p.company, 
+                            p.description, 
+                            u.username,
+                            (p.price * p.quantity) AS total_value
+                        FROM 
+                            products p 
+                        JOIN 
+                            users u 
+                        ON 
+                            p.user_id = u.id 
+                        LIMIT :limit OFFSET :offset
+                    ");
                     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
                     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
                     $stmt->execute();
@@ -70,10 +89,12 @@ if (!isset($_SESSION['user_id'])) {
                         echo "<td class='border border-gray-300 p-2'>{$row['quantity']}</td>";
                         echo "<td class='border border-gray-300 p-2'>{$row['company']}</td>";
                         echo "<td class='border border-gray-300 p-2'>{$row['description']}</td>";
+                        echo "<td class='border border-gray-300 p-2'>{$row['username']}</td>";
+                        echo "<td class='border border-gray-300 p-2'>R$ " . number_format($row['total_value'], 2, ',', '.') . "</td>"; // Valor total
                         echo "<td class='border border-gray-300 p-2'>
-                            <a href='edit_product.php?id={$row['id']}' class='text-blue-500 hover:text-blue-700'>Edit</a> | 
-                            <a href='delete_product.php?id={$row['id']}' class='text-red-500 hover:text-red-700'>Delete</a>
-                        </td>";
+                                <a href='edit_product.php?id={$row['id']}' class='text-blue-500 hover:text-blue-700'>Edit</a> | 
+                                <a href='delete_product.php?id={$row['id']}' class='text-red-500 hover:text-red-700'>Delete</a>
+                            </td>";
                         echo "</tr>";
                     }
                     ?>
