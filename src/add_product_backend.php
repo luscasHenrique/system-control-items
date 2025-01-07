@@ -12,11 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Gerar QR Code único como JSON
     $qrCodeData = json_encode([
-        'name' => $name,
-        'price' => $price,
-        'company' => $company,
-        'description' => $description,
-        'quantity' => $quantity,
+        'name' => trim($name),
+        'price' => number_format($price, 2, '.', ''), // Garantir formato decimal
+        'company' => trim($company),
+        'description' => trim($description),
+        'quantity' => (int)$quantity // Garantir número inteiro
     ]);
 
     try {
