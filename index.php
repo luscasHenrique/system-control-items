@@ -23,11 +23,19 @@ if (!isset($_SESSION['user_id'])) {
         <h1 class="text-2xl font-bold mb-4 text-blue-700 text-center">Product List</h1>
 
         <!-- Campo de Pesquisa -->
-        <input
-            type="text"
-            id="searchInput"
-            placeholder="Search for products or users..."
-            class="w-full border border-gray-300 rounded-lg p-2 mb-4 text-center">
+        <div class="flex justify-between items-center mb-4">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search for products or users..."
+                class="w-2/3 border border-gray-300 rounded-lg p-2 text-center">
+
+            <a
+                href="export_to_csv.php"
+                class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                Download CSV
+            </a>
+        </div>
 
         <!-- Contêiner da Tabela com Overflow -->
         <div class="overflow-x-auto">
