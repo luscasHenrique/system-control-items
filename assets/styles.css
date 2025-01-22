@@ -1,1 +1,51 @@
-/* Custom styles */
+/* Estilos para cards na web */
+.card-web {
+  width: 300px; /* Largura maior para a web */
+  height: auto; /* Ajusta altura automaticamente */
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-web img {
+  width: 100px; /* Ajusta o tamanho da logo */
+  height: 100px;
+}
+
+.card-web canvas {
+  width: 120px !important; /* Aumenta o tamanho do QR Code */
+  height: 120px !important;
+}
+
+.card-web p {
+  font-size: 16px; /* Ajusta o tamanho da fonte */
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Estilos para cards no PDF */
+.card-pdf {
+  width: 103mm; /* Padrão definido para PDF */
+  height: 25mm;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-pdf img {
+  height: 70px;
+  width: 70px;
+}
+
+.card-pdf canvas {
+  height: 70px;
+  width: 70px;
+}

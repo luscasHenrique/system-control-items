@@ -20,7 +20,7 @@
 
         <?php
         // Configurações de paginação
-        $limit = 9; // Quantidade de cartões por página
+        $limit = 9;
         $page = isset($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
         $offset = ($page - 1) * $limit;
 
@@ -50,11 +50,11 @@
                             Selecionar
                         </label>
                         <div id="card-<?= $row['id']; ?>"
-                            class="flex flex-col items-center gap-0 "
-                            style="background-color: transparent; width: 103mm; height: 25mm;">
+                            class="flex flex-col items-center gap-1"
+                            style="background-color: transparent; width: 380px; height: 120px;">
                             <div class="flex items-center justify-center space-x-4">
-                                <img src="assets/img/Logo.png" alt="Logo" class="h-[70px] w-[70px]">
-                                <canvas id="qrCanvas-<?= $row['id']; ?>" class="h-[70px] w-[70px]"></canvas>
+                                <img src="assets/img/Logo.png" alt="Logo" class="h-[80px] w-[80px]">
+                                <canvas id="qrCanvas-<?= $row['id']; ?>" class="h-[80px] w-[80px]"></canvas>
                             </div>
                             <p class="text-sm font-bold">Código: <?= $productId; ?></p>
                         </div>
@@ -66,7 +66,7 @@
                                 const qr = new QRious({
                                     element: document.getElementById('qrCanvas-<?= $row['id']; ?>'),
                                     value: qrContent,
-                                    size: 74 // Ajustar tamanho do QR Code
+                                    size: 180 // Ajustado para 60px (20mm)
                                 });
                             }
                         });
@@ -109,17 +109,15 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'letter'); // Dimensões da folha Letter (216x279 mm)
-            const cardWidth = 101.6; // Largura da etiqueta em mm
-            const cardHeight = 25; // Altura da etiqueta em mm
-            const marginTop = 16; // Margem superior em mm
-            const marginLeft = 8; // Margem esquerda em mm
-            const columnGap = 0; // Espaço entre colunas
-            const rowGap = 0; // Espaço entre linhas
+            const pdf = new jsPDF('p', 'mm', 'a4'); // Ajustado para folha A4
+            const cardWidth = 100; // Largura da etiqueta
+            const cardHeight = 30; // Altura da etiqueta
+            const marginTop = 16;
+            const marginLeft = 8;
+            const columnGap = 5;
+            const rowGap = 5;
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
-            const cardsPerRow = 2;
-            const cardsPerColumn = 10;
             let x = marginLeft;
             let y = marginTop;
 
@@ -128,7 +126,6 @@
                 const cardElement = document.getElementById(`card-${cardId}`);
                 if (!cardElement) continue;
 
-                // Renderizar o cartão completo
                 const canvas = await html2canvas(cardElement, {
                     scale: 2
                 });
