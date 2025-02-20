@@ -66,12 +66,14 @@ include 'menu.php';
                     $offset = ($page - 1) * $limit;
 
                     // Buscar produtos
+                    // Buscar produtos excluindo os que possuem deleted_at
                     $stmt = $conn->prepare("
-                        SELECT p.id, p.name, p.price, p.quantity, p.company, p.description, u.username, 
-                        (p.price * p.quantity) AS total_value
-                        FROM products p 
-                        JOIN users u ON p.user_id = u.id 
-                        LIMIT :limit OFFSET :offset
+                    SELECT p.id, p.name, p.price, p.quantity, p.company, p.description, u.username, 
+                    (p.price * p.quantity) AS total_value
+                    FROM products p 
+                    JOIN users u ON p.user_id = u.id 
+                    WHERE p.deleted_at IS NULL
+                    LIMIT :limit OFFSET :offset
                     ");
                     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
                     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);

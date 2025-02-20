@@ -13,7 +13,7 @@ $stmt = $conn->prepare("
     SELECT 
         l.id, 
         l.product_id, 
-        p.name AS product_name, 
+        COALESCE(p.name, 'Produto Removido') AS product_name, 
         p.company, 
         u.username AS user_name, 
         l.change_value, 
@@ -26,6 +26,7 @@ $stmt = $conn->prepare("
     JOIN users u ON l.user_id = u.id
     ORDER BY l.timestamp DESC
 ");
+
 $stmt->execute();
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
