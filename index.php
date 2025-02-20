@@ -31,24 +31,16 @@ include 'menu.php';
     <div class="max-w-7xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-4 text-blue-700 text-center">Product List</h1>
 
-        <!-- Campo de Pesquisa -->
+        <!-- Campo de Pesquisa e Exportação -->
         <div class="flex justify-between items-center mb-4">
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="Search for products or users..."
-                class="w-2/3 border border-gray-300 rounded-lg p-2 text-center">
-
-            <a
-                href="export_to_csv.php"
-                class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+            <input type="text" id="searchInput" placeholder="Search for products..." class="w-2/3 border border-gray-300 rounded-lg p-2 text-center">
+            <a href="export_to_csv.php" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
                 Download CSV
             </a>
         </div>
 
-        <!-- Contêiner da Tabela com Overflow -->
+        <!-- Tabela de Produtos -->
         <div class="overflow-x-auto">
-            <!-- Tabela de Produtos -->
             <table class="w-full border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-200">
                     <tr>
@@ -68,32 +60,16 @@ include 'menu.php';
                 <tbody id="productTable">
                     <?php
                     // Configurações de paginação
-                    $limit = 10; // Registros por página
+                    $limit = 10;
                     $page = isset($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
                     $offset = ($page - 1) * $limit;
 
-                    // Contar total de registros
-                    $totalStmt = $conn->query("SELECT COUNT(*) as total FROM products");
-                    $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
-                    $totalPages = ceil($totalRecords / $limit);
-
-                    // Buscar registros da página atual com o nome do usuário e valor total
+                    // Buscar produtos da página atual
                     $stmt = $conn->prepare("
-                        SELECT 
-                            p.id, 
-                            p.name, 
-                            p.price, 
-                            p.quantity, 
-                            p.company, 
-                            p.description, 
-                            u.username,
-                            (p.price * p.quantity) AS total_value
-                        FROM 
-                            products p 
-                        JOIN 
-                            users u 
-                        ON 
-                            p.user_id = u.id 
+                        SELECT p.id, p.name, p.price, p.quantity, p.company, p.description, u.username, 
+                        (p.price * p.quantity) AS total_value
+                        FROM products p 
+                        JOIN users u ON p.user_id = u.id 
                         LIMIT :limit OFFSET :offset
                     ");
                     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -109,67 +85,81 @@ include 'menu.php';
                         echo "<td class='border border-gray-300 p-2'>{$row['company']}</td>";
                         echo "<td class='border border-gray-300 p-2'>{$row['description']}</td>";
                         echo "<td class='border border-gray-300 p-2'>{$row['username']}</td>";
-                        echo "<td class='border border-gray-300 p-2'>R$ " . number_format($row['total_value'], 2, ',', '.') . "</td>"; // Valor total
+                        echo "<td class='border border-gray-300 p-2'>R$ " . number_format($row['total_value'], 2, ',', '.') . "</td>";
 
-                        // Exibir coluna "Actions" somente para administradores
                         if ($_SESSION['role'] === 'admin') {
                             echo "<td class='border border-gray-300 p-2'>
-                                    <a href='edit_product.php?id={$row['id']}' class='text-blue-500 hover:text-blue-700'>Edit</a> | 
-                                    <a href='delete_product.php?id={$row['id']}' class='text-red-500 hover:text-red-700'>Delete</a>
+                                    <button onclick='openEditModal({$row['id']})' class='text-blue-500 hover:text-blue-700'>Editar</button> | 
+                                    <a href='delete_product.php?id={$row['id']}' class='text-red-500 hover:text-red-700'>Excluir</a>
                                 </td>";
                         }
-
                         echo "</tr>";
                     }
                     ?>
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <!-- Navegação de Paginação -->
-        <div class="flex justify-center mt-8 space-x-4">
-            <?php if ($page > 1): ?>
-                <a href="?page=<?= $page - 1; ?>" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">Anterior</a>
-            <?php endif; ?>
-
-            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <a href="?page=<?= $i; ?>" class="px-4 py-2 rounded <?= $i === $page ? 'bg-blue-500 text-white' : 'bg-gray-300 hover:bg-gray-400'; ?>">
-                    <?= $i; ?>
-                </a>
-            <?php endfor; ?>
-
-            <?php if ($page < $totalPages): ?>
-                <a href="?page=<?= $page + 1; ?>" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">Próxima</a>
-            <?php endif; ?>
+    <!-- Modal de Edição -->
+    <div id="editModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <h2 class="text-xl font-bold mb-4 text-blue-700">Editar Produto</h2>
+            <form id="editForm">
+                <input type="hidden" id="editProductId">
+                <label class="block font-bold">Nome:</label>
+                <input type="text" id="editName" class="w-full border p-2 rounded mb-2">
+                <label class="block font-bold">Preço:</label>
+                <input type="number" id="editPrice" class="w-full border p-2 rounded mb-2" step="0.01">
+                <label class="block font-bold">Quantidade:</label>
+                <input type="number" id="editQuantity" class="w-full border p-2 rounded mb-2">
+                <label class="block font-bold">Empresa:</label>
+                <input type="text" id="editCompany" class="w-full border p-2 rounded mb-2">
+                <label class="block font-bold">Descrição:</label>
+                <textarea id="editDescription" class="w-full border p-2 rounded mb-4"></textarea>
+                <div class="flex justify-between">
+                    <button type="button" id="closeModal" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Salvar</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Rodapé -->
-    <footer class="text-center mt-10 text-gray-600">
-        <p>&copy; <?php echo date('Y'); ?> Inventory System Luscas. All rights reserved.</p>
-    </footer>
-
-    <!-- Script para Filtro de Pesquisa -->
+    <!-- Scripts -->
     <script>
-        const searchInput = document.getElementById('searchInput');
-        const productTable = document.getElementById('productTable');
+        async function openEditModal(productId) {
+            const response = await fetch(`get_product.php?id=${productId}`);
+            const product = await response.json();
+            if (!product.success) {
+                alert("Erro ao carregar dados do produto.");
+                return;
+            }
+            document.getElementById('editProductId').value = product.data.id;
+            document.getElementById('editName').value = product.data.name;
+            document.getElementById('editPrice').value = product.data.price;
+            document.getElementById('editQuantity').value = product.data.quantity;
+            document.getElementById('editCompany').value = product.data.company;
+            document.getElementById('editDescription').value = product.data.description;
+            document.getElementById('editModal').classList.remove('hidden');
+        }
 
-        searchInput.addEventListener('input', () => {
-            const filter = searchInput.value.toLowerCase();
-            const rows = productTable.getElementsByTagName('tr');
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('editModal').classList.add('hidden');
+        });
 
-            for (let i = 0; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName('td');
-                let found = false;
-
-                for (let j = 0; j < cells.length; j++) {
-                    if (cells[j].textContent.toLowerCase().includes(filter)) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                rows[i].style.display = found ? '' : 'none';
+        document.getElementById('editForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('update_product.php', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert('Produto atualizado com sucesso!');
+                location.reload();
+            } else {
+                alert('Erro ao atualizar o produto.');
             }
         });
     </script>
