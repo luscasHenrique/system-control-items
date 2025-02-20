@@ -33,6 +33,7 @@ include 'menu.php';
 
         <!-- Campo de Pesquisa e Exportação -->
         <div class="flex justify-between items-center mb-4">
+            <!-- Campo de Pesquisa -->
             <input type="text" id="searchInput" placeholder="Pesquisar produtos..." class="w-2/3 border border-gray-300 rounded-lg p-2 text-center">
             <a href="export_to_csv.php" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
                 Download CSV
@@ -127,6 +128,44 @@ include 'menu.php';
 
     <!-- Scripts -->
     <script>
+        document.getElementById('searchInput').addEventListener('input', async function() {
+            const query = this.value.trim(); // Pega o texto digitado
+
+            try {
+                const response = await fetch(`src/search_products.php?query=${query}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const tableBody = document.getElementById('productTable');
+                    tableBody.innerHTML = ""; // Limpa a tabela para exibir os novos resultados
+
+                    result.data.forEach(product => {
+                        tableBody.innerHTML += `
+                    <tr>
+                        <td class="border border-gray-300 p-2">${product.id}</td>
+                        <td class="border border-gray-300 p-2">${product.name}</td>
+                        <td class="border border-gray-300 p-2">R$ ${parseFloat(product.price).toFixed(2).replace('.', ',')}</td>
+                        <td class="border border-gray-300 p-2">${product.quantity}</td>
+                        <td class="border border-gray-300 p-2">${product.company}</td>
+                        <td class="border border-gray-300 p-2">${product.description}</td>
+                        <td class="border border-gray-300 p-2">${product.username}</td>
+                        <td class="border border-gray-300 p-2">R$ ${parseFloat(product.total_value).toFixed(2).replace('.', ',')}</td>
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <td class="border border-gray-300 p-2">
+                                <button onclick="openEditModal(${product.id})" class="text-blue-500 hover:text-blue-700">Editar</button>
+                                <button onclick="deleteProduct(${product.id})" class="text-red-500 hover:text-red-700 ml-2">Excluir</button>
+                            </td>
+                        <?php endif; ?>
+                    </tr>
+                `;
+                    });
+                }
+            } catch (error) {
+                console.error('Erro na pesquisa:', error);
+            }
+        });
+
+
         async function openEditModal(productId) {
             try {
                 const response = await fetch(`src/get_product.php?id=${productId}`);

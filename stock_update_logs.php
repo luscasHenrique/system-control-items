@@ -18,9 +18,11 @@ $stmt = $conn->prepare("
         u.username AS user_name, 
         l.change_value, 
         l.current_quantity, 
+        l.description, 
+        l.status, 
         l.timestamp
     FROM stock_logs l
-    JOIN products p ON l.product_id = p.id
+    LEFT JOIN products p ON l.product_id = p.id
     JOIN users u ON l.user_id = u.id
     ORDER BY l.timestamp DESC
 ");
@@ -56,6 +58,8 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th class="border border-gray-300 p-2">Usuário</th>
                         <th class="border border-gray-300 p-2">Valor da Atualização</th>
                         <th class="border border-gray-300 p-2">Quantidade Atual</th>
+                        <th class="border border-gray-300 p-2">Descrição</th>
+                        <th class="border border-gray-300 p-2">Status</th>
                         <th class="border border-gray-300 p-2">Data e Hora</th>
                     </tr>
                 </thead>
@@ -64,13 +68,17 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <tr>
                             <td class="border border-gray-300 p-2"><?= $log['id']; ?></td>
                             <td class="border border-gray-300 p-2 font-bold"><?= $log['product_id']; ?></td>
-                            <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['product_name']); ?></td>
-                            <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['company']); ?></td>
+                            <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['product_name'] ?? 'Produto Removido'); ?></td>
+                            <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['company'] ?? '-'); ?></td>
                             <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['user_name']); ?></td>
                             <td class="border border-gray-300 p-2 font-bold <?= $log['change_value'] < 0 ? 'text-red-500' : 'text-green-500'; ?>">
                                 <?= $log['change_value'] > 0 ? '+' : ''; ?><?= $log['change_value']; ?>
                             </td>
                             <td class="border border-gray-300 p-2"><?= $log['current_quantity']; ?></td>
+                            <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['description']); ?></td>
+                            <td class="border border-gray-300 p-2 font-bold <?= $log['status'] == 'Excluído' ? 'text-red-500' : 'text-blue-500'; ?>">
+                                <?= $log['status']; ?>
+                            </td>
                             <td class="border border-gray-300 p-2"><?= date("d/m/Y H:i", strtotime($log['timestamp'])); ?></td>
                         </tr>
                     <?php endforeach; ?>
