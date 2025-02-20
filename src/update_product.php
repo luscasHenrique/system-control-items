@@ -1,12 +1,7 @@
 <?php
 session_start();
-require 'src/db_connection.php';
+require '../src/db_connection.php';
 header('Content-Type: application/json');
-
-// Ativa a exibição de erros para depuração
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 // Captura os dados da requisição JSON corretamente
 $data = json_decode(file_get_contents("php://input"), true);
@@ -58,14 +53,7 @@ try {
     $updateStmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($updateStmt->execute()) {
-        // Registra no `stock_logs`
-        $logStmt = $conn->prepare("INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity) VALUES (:id, :user_id, 0, :quantity)");
-        $logStmt->bindParam(':id', $id);
-        $logStmt->bindParam(':user_id', $user_id);
-        $logStmt->bindParam(':quantity', $quantity);
-        $logStmt->execute();
-
-        echo json_encode(["success" => true]);
+        echo json_encode(["success" => true, "message" => "Produto atualizado com sucesso!"]);
     } else {
         echo json_encode(["success" => false, "message" => "Erro ao atualizar o banco de dados."]);
     }

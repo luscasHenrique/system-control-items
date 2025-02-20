@@ -152,6 +152,50 @@ include 'menu.php';
         document.getElementById('closeModal').addEventListener('click', function() {
             document.getElementById('editModal').classList.add('hidden');
         });
+
+        document.getElementById('editForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const productId = document.getElementById('editProductId').value;
+            const name = document.getElementById('editName').value;
+            const price = document.getElementById('editPrice').value;
+            const quantity = document.getElementById('editQuantity').value;
+            const company = document.getElementById('editCompany').value;
+            const description = document.getElementById('editDescription').value;
+
+            const data = {
+                productId,
+                name,
+                price,
+                quantity,
+                company,
+                description
+            };
+
+            try {
+                const response = await fetch('src/update_product.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                console.log(result); // Exibe a resposta no console para depuração
+
+                if (result.success) {
+                    alert('Produto atualizado com sucesso!');
+                    document.getElementById('editModal').classList.add('hidden'); // Fecha o modal
+                    location.reload(); // Atualiza a página para refletir os dados atualizados
+                } else {
+                    alert('Erro ao atualizar o produto: ' + result.message);
+                }
+            } catch (error) {
+                alert('Erro ao enviar os dados: ' + error.message);
+                console.error(error);
+            }
+        });
     </script>
 
 </body>
