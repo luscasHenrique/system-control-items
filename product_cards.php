@@ -75,7 +75,7 @@
                 <button type="button" id="exportPdf" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     Exportar para PDF
                 </button>
-                <button type="button" id="exportImage" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                <button type="button" id="exportImage" class="hidden bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                     Exportar como Imagem
                 </button>
 
