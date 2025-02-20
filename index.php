@@ -90,6 +90,7 @@ include 'menu.php';
                         if ($_SESSION['role'] === 'admin') {
                             echo "<td class='border border-gray-300 p-2'>
                                     <button onclick='openEditModal({$row['id']})' class='text-blue-500 hover:text-blue-700'>Editar</button>
+                                    <button onclick='deleteProduct({$row['id']})' class='text-red-500 hover:text-red-700 ml-2'>Excluir</button>
                                   </td>";
                         }
                         echo "</tr>";
@@ -196,6 +197,31 @@ include 'menu.php';
                 console.error(error);
             }
         });
+
+        async function deleteProduct(productId) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                try {
+                    const response = await fetch(`src/delete_product.php?id=${productId}`, {
+                        method: 'GET'
+                    });
+
+                    const text = await response.text(); // Captura a resposta como texto
+                    console.log(text); // Exibe a resposta no console para depuração
+
+                    const result = JSON.parse(text); // Tenta converter para JSON
+
+                    if (result.success) {
+                        alert('Produto excluído com sucesso!');
+                        location.reload(); // Recarrega a página para atualizar a lista de produtos
+                    } else {
+                        alert('Erro ao excluir o produto: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Erro ao enviar a requisição: ' + error.message);
+                    console.error(error);
+                }
+            }
+        }
     </script>
 
 </body>
