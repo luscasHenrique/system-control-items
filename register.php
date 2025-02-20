@@ -1,5 +1,12 @@
 <?php
+session_start();
 require 'src/db_connection.php';
+
+// Verifica se o usuário está logado e se é administrador
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header('Location: index.php?error=Acesso negado.');
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -30,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $insertStmt->bindParam(':role', $role);
 
         if ($insertStmt->execute()) {
-            header('Location: login.php?success=Conta criada com sucesso! Faça login.');
+            header('Location: register.php?success=Conta criada com sucesso!');
             exit();
         } else {
             header('Location: register.php?error=Erro ao criar usuário');
@@ -43,21 +50,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar</title>
+    <title>Registrar Usuário</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">Registrar</h1>
+        <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">Registrar Usuário</h1>
 
         <?php if (isset($_GET['error'])): ?>
             <p class="text-red-500 text-center mb-4"><?= htmlspecialchars($_GET['error']); ?></p>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['success'])): ?>
+            <p class="text-green-500 text-center mb-4"><?= htmlspecialchars($_GET['success']); ?></p>
         <?php endif; ?>
 
         <form action="" method="POST">
@@ -67,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 id="username"
                 name="username"
                 class="w-full border border-gray-300 rounded-lg p-2 mb-4"
-                placeholder="Digite seu usuário"
+                placeholder="Digite o nome de usuário"
                 required>
 
             <label for="password" class="block font-semibold mb-2">Senha:</label>
@@ -76,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 id="password"
                 name="password"
                 class="w-full border border-gray-300 rounded-lg p-2 mb-4"
-                placeholder="Digite sua senha"
+                placeholder="Digite a senha"
                 required>
 
             <button
@@ -87,8 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <p class="text-gray-600 text-center mt-4">
-            Já tem uma conta?
-            <a href="login.php" class="text-blue-500 hover:underline">Faça login aqui</a>.
+            <a href="index.php" class="text-blue-500 hover:underline">Voltar para a página inicial</a>.
         </p>
     </div>
 </body>

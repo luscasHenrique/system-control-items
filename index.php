@@ -52,7 +52,9 @@ if (!isset($_SESSION['user_id'])) {
                         <th class="border border-gray-300 p-2">Description</th>
                         <th class="border border-gray-300 p-2">User</th>
                         <th class="border border-gray-300 p-2">Total Value</th>
-                        <th class="border border-gray-300 p-2">Actions</th>
+                        <?php if ($_SESSION['role'] === 'admin'): ?> 
+                            <th class="border border-gray-300 p-2">Actions</th> 
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody id="productTable">
@@ -100,10 +102,15 @@ if (!isset($_SESSION['user_id'])) {
                         echo "<td class='border border-gray-300 p-2'>{$row['description']}</td>";
                         echo "<td class='border border-gray-300 p-2'>{$row['username']}</td>";
                         echo "<td class='border border-gray-300 p-2'>R$ " . number_format($row['total_value'], 2, ',', '.') . "</td>"; // Valor total
-                        echo "<td class='border border-gray-300 p-2'>
-                                <a href='edit_product.php?id={$row['id']}' class='text-blue-500 hover:text-blue-700'>Edit</a> | 
-                                <a href='delete_product.php?id={$row['id']}' class='text-red-500 hover:text-red-700'>Delete</a>
-                            </td>";
+                        
+                        // Exibir coluna "Actions" somente para administradores
+                        if ($_SESSION['role'] === 'admin') {
+                            echo "<td class='border border-gray-300 p-2'>
+                                    <a href='edit_product.php?id={$row['id']}' class='text-blue-500 hover:text-blue-700'>Edit</a> | 
+                                    <a href='delete_product.php?id={$row['id']}' class='text-red-500 hover:text-red-700'>Delete</a>
+                                </td>";
+                        }
+
                         echo "</tr>";
                     }
                     ?>
@@ -131,7 +138,7 @@ if (!isset($_SESSION['user_id'])) {
 
     <!-- Rodapé -->
     <footer class="text-center mt-10 text-gray-600">
-        <p>&copy; <?php echo date('Y'); ?> Inventory System. All rights reserved.</p>
+        <p>&copy; <?php echo date('Y'); ?> Inventory System Luscas. All rights reserved.</p>
     </footer>
 
     <!-- Script para Filtro de Pesquisa -->

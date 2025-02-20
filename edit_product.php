@@ -22,14 +22,14 @@ if (!$product) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
     $price = $_POST['price'];
-    $quantity = $_POST['quantity']; // Adicionar o campo quantity
+    $quantity = $_POST['quantity'];
     $company = $_POST['company'];
     $description = $_POST['description'];
 
     $updateStmt = $conn->prepare("UPDATE products SET name = :name, price = :price, quantity = :quantity, company = :company, description = :description WHERE id = :id");
     $updateStmt->bindParam(':name', $name);
     $updateStmt->bindParam(':price', $price);
-    $updateStmt->bindParam(':quantity', $quantity, PDO::PARAM_INT); // Associar quantity
+    $updateStmt->bindParam(':quantity', $quantity, PDO::PARAM_INT);
     $updateStmt->bindParam(':company', $company);
     $updateStmt->bindParam(':description', $description);
     $updateStmt->bindParam(':id', $id, PDO::PARAM_INT);
@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -54,30 +55,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body class="bg-gray-100 flex items-center justify-center h-screen">
     <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h1 class="text-2xl font-bold mb-6 text-center">Edit Product</h1>
+        <h1 class="text-2xl font-bold mb-6 text-center text-blue-700">Editar Produto</h1>
         <form method="POST">
-            <label for="name" class="block font-bold mb-2">Name:</label>
+            <label for="name" class="block font-bold mb-2">Nome:</label>
             <input type="text" id="name" name="name" value="<?= htmlspecialchars($product['name']); ?>" class="w-full border border-gray-300 rounded-lg p-2 mb-4" required>
 
-            <label for="price" class="block font-bold mb-2">Price:</label>
+            <label for="price" class="block font-bold mb-2">Preço:</label>
             <input type="number" id="price" name="price" step="0.01" value="<?= htmlspecialchars($product['price']); ?>" class="w-full border border-gray-300 rounded-lg p-2 mb-4" required>
 
-            <label for="quantity" class="block font-bold mb-2">Quantity:</label>
-            <input
-                type="number"
-                id="quantity"
-                name="quantity"
-                value="<?= htmlspecialchars($product['quantity']); ?>"
-                class="w-full border border-gray-300 rounded-lg p-2 mb-4"
-                required>
+            <label for="quantity" class="block font-bold mb-2">Quantidade:</label>
+            <input type="number" id="quantity" name="quantity" value="<?= htmlspecialchars($product['quantity']); ?>" class="w-full border border-gray-300 rounded-lg p-2 mb-4" required>
 
-            <label for="company" class="block font-bold mb-2">Company:</label>
+            <label for="company" class="block font-bold mb-2">Empresa:</label>
             <input type="text" id="company" name="company" value="<?= htmlspecialchars($product['company']); ?>" class="w-full border border-gray-300 rounded-lg p-2 mb-4" required>
 
-            <label for="description" class="block font-bold mb-2">Description:</label>
+            <label for="description" class="block font-bold mb-2">Descrição:</label>
             <textarea id="description" name="description" class="w-full border border-gray-300 rounded-lg p-2 mb-4" required><?= htmlspecialchars($product['description']); ?></textarea>
 
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-700">Save Changes</button>
+            <div class="flex justify-between">
+                <button type="button" onclick="window.history.back();" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+                    Cancelar
+                </button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Salvar Alterações
+                </button>
+            </div>
         </form>
     </div>
 </body>
