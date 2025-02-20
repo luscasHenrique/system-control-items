@@ -4,10 +4,19 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
-?>
 
-<?php include 'menu.php'; ?>
-<?php require 'src/db_connection.php'; ?>
+require 'src/db_connection.php';
+
+// **Registrar log de acesso à página**
+$user_id = $_SESSION['user_id'];
+$action = "Usuário $user_id acessou a página de lista de produtos.";
+$logStmt = $conn->prepare("INSERT INTO logs (user_id, action) VALUES (:user_id, :action)");
+$logStmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$logStmt->bindParam(':action', $action);
+$logStmt->execute();
+
+include 'menu.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,7 +25,6 @@ if (!isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product List</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -52,8 +60,8 @@ if (!isset($_SESSION['user_id'])) {
                         <th class="border border-gray-300 p-2">Description</th>
                         <th class="border border-gray-300 p-2">User</th>
                         <th class="border border-gray-300 p-2">Total Value</th>
-                        <?php if ($_SESSION['role'] === 'admin'): ?> 
-                            <th class="border border-gray-300 p-2">Actions</th> 
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <th class="border border-gray-300 p-2">Actions</th>
                         <?php endif; ?>
                     </tr>
                 </thead>
@@ -102,7 +110,7 @@ if (!isset($_SESSION['user_id'])) {
                         echo "<td class='border border-gray-300 p-2'>{$row['description']}</td>";
                         echo "<td class='border border-gray-300 p-2'>{$row['username']}</td>";
                         echo "<td class='border border-gray-300 p-2'>R$ " . number_format($row['total_value'], 2, ',', '.') . "</td>"; // Valor total
-                        
+
                         // Exibir coluna "Actions" somente para administradores
                         if ($_SESSION['role'] === 'admin') {
                             echo "<td class='border border-gray-300 p-2'>

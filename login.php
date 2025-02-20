@@ -16,7 +16,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
-            header('Location: index.php'); // Redireciona para a página principal
+
+            // **Registrar log de login**
+            $action = "Usuário {$user['id']} fez login.";
+            $logStmt = $conn->prepare("INSERT INTO logs (user_id, action) VALUES (:user_id, :action)");
+            $logStmt->bindParam(':user_id', $user['id'], PDO::PARAM_INT);
+            $logStmt->bindParam(':action', $action);
+            $logStmt->execute();
+
+            // Redireciona para a página principal
+            header('Location: index.php');
             exit();
         } else {
             $error = "Usuário ou senha incorretos.";

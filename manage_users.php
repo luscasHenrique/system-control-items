@@ -117,11 +117,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             </td>
                             <td class="border border-gray-300 p-2"><?= $user['created_at']; ?></td>
                             <td class="border border-gray-300 p-2 flex justify-center space-x-2">
+                                <!-- Formulário para alterar a senha -->
                                 <form method="POST">
                                     <input type="hidden" name="user_id" value="<?= $user['id']; ?>">
                                     <input type="password" name="new_password" placeholder="Nova Senha" required class="border p-1 rounded w-32">
                                     <button type="submit" name="update_password" class="bg-yellow-500 text-white px-3 py-1 rounded">🔑</button>
                                 </form>
+
+                                <!-- Formulário para excluir usuário -->
                                 <form method="POST">
                                     <input type="hidden" name="user_id" value="<?= $user['id']; ?>">
                                     <button type="submit" name="delete_user" class="bg-red-500 text-white px-3 py-1 rounded" onclick="return confirm('Tem certeza que deseja excluir?');">🗑️</button>

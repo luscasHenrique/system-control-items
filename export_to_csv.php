@@ -1,5 +1,12 @@
 <?php
 require 'src/db_connection.php';
+session_start(); // Garante que a sessão está ativa
+
+if (!isset($_SESSION['user_id'])) {
+    die("Acesso negado! Faça login para exportar os dados.");
+}
+
+$user_id = $_SESSION['user_id']; // ID do usuário logado
 
 // Configurar o cabeçalho do arquivo CSV
 header('Content-Type: text/csv; charset=utf-8');
@@ -45,6 +52,13 @@ try {
             number_format($row['total_value'], 2, '.', '') // Valor total com ponto decimal
         ]);
     }
+
+    // **Registrar log da exportação**
+    $action = "Usuário $user_id exportou a lista de produtos para CSV.";
+    $logStmt = $conn->prepare("INSERT INTO logs (user_id, action) VALUES (:user_id, :action)");
+    $logStmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $logStmt->bindParam(':action', $action);
+    $logStmt->execute();
 } catch (PDOException $e) {
     die("Erro ao exportar os dados: " . $e->getMessage());
 }

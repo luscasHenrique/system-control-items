@@ -31,6 +31,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $insertStmt->bindParam(':role', $role);
 
         if ($insertStmt->execute()) {
+            // Capturar ID do novo usuário criado
+            $newUserId = $conn->lastInsertId();
+
+            // **Registrar log da criação do usuário**
+            if (isset($_SESSION['user_id'])) { // Garante que há um usuário logado
+                $action = "Usuário " . $_SESSION['user_id'] . " criou o usuário ID " . $newUserId . " (" . $username . ")";
+                $logStmt = $conn->prepare("INSERT INTO logs (user_id, action) VALUES (:user_id, :action)");
+                $logStmt->bindParam(':user_id', $_SESSION['user_id'], PDO::PARAM_INT);
+                $logStmt->bindParam(':action', $action);
+                $logStmt->execute();
+            }
+
             header('Location: ../register.php?success=true');
             exit();
         } else {

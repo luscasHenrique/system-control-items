@@ -33,6 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 
         if ($stmt->execute()) {
+            // Capturar ID do produto recém-criado
+            $newProductId = $conn->lastInsertId();
+
+            // **Registrar log da ação**
+            $action = "Usuário $user_id adicionou o produto ID $newProductId ($name)";
+            $logStmt = $conn->prepare("INSERT INTO logs (user_id, action) VALUES (:user_id, :action)");
+            $logStmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            $logStmt->bindParam(':action', $action);
+            $logStmt->execute();
+
             header('Location: ../add_product.php?success=true');
             exit();
         } else {
