@@ -17,31 +17,58 @@
 <body class="bg-gray-100">
     <div class="max-w-7xl mx-auto mt-10">
         <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">Export Product Cards</h1>
-
+        <!-- Barra de pesquisa -->
+        <div class="text-center mb-6">
+            <input type="text" id="searchBar" placeholder="Pesquisar..." class="w-1/2 p-2 border border-gray-300 rounded-lg">
+        </div>
         <?php
         $limit = 9;
         $page = isset($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
         $offset = ($page - 1) * $limit;
 
-        $totalStmt = $conn->query("SELECT COUNT(*) as total FROM products");
+        $totalStmt = $conn->query("SELECT COUNT(*) as total FROM products WHERE deleted_at IS NULL");
         $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
         $totalPages = ceil($totalRecords / $limit);
 
-        $stmt = $conn->prepare("SELECT id, qrcode FROM products WHERE deleted_at IS NULL LIMIT :limit OFFSET :offset");
+        // Correção: adicionando os campos necessários na consulta
+        $stmt = $conn->prepare("SELECT id, qrcode, name, price, company, description, quantity FROM products WHERE deleted_at IS NULL LIMIT :limit OFFSET :offset");
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         ?>
-
         <form id="exportForm">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <?php foreach ($products as $row): ?>
                     <?php
                     $productId = str_pad($row['id'], 6, '0', STR_PAD_LEFT);
                     $qrcodeContent = $row['qrcode'];
+
+                    // Correção: garantindo que os campos existam antes de concatenar
+                    $name = isset($row['name']) ? $row['name'] : '';
+                    $price = isset($row['price']) ? $row['price'] : '';
+                    $company = isset($row['company']) ? $row['company'] : '';
+                    $description = isset($row['description']) ? $row['description'] : '';
+                    $quantity = isset($row['quantity']) ? $row['quantity'] : '';
+
+                    // Criando a string de busca com os dados corretos
+                    $searchData = strtolower(
+                        trim(
+                            htmlspecialchars(
+                                "{$row['id']} {$row['qrcode']} " .
+                                    (!empty($row['name']) ? $row['name'] : '') . " " .
+                                    (!empty($row['price']) ? $row['price'] : '') . " " .
+                                    (!empty($row['company']) ? $row['company'] : '') . " " .
+                                    (!empty($row['description']) ? $row['description'] : '') . " " .
+                                    (!empty($row['quantity']) ? $row['quantity'] : ''),
+                                ENT_QUOTES,
+                                'UTF-8'
+                            )
+                        )
+                    );
+
                     ?>
-                    <div class="bg-white p-4 shadow-md rounded-lg text-center">
+                    <div class="bg-white p-4 shadow-md rounded-lg text-center card" data-search="<?= $searchData; ?>">
                         <label class="block mb-2">
                             <input type="checkbox" name="selected[]" value="<?= $row['id']; ?>">
                             Selecionar
@@ -104,6 +131,22 @@
     </div>
 
     <script>
+        document.getElementById('searchBar').addEventListener('input', function() {
+            const searchValue = this.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.card');
+
+            cards.forEach(card => {
+                const searchData = (card.getAttribute('data-search') || '').toLowerCase().trim();
+                if (searchData.includes(searchValue)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+
+
         document.getElementById('exportPdf').addEventListener('click', async () => {
             const selectedCards = document.querySelectorAll('input[name="selected[]"]:checked');
             if (selectedCards.length === 0) {
