@@ -66,15 +66,13 @@
                             )
                         )
                     );
-
                     ?>
                     <div class="bg-white p-4 shadow-md rounded-lg text-center card" data-search="<?= $searchData; ?>">
                         <label class="block mb-2">
                             <input type="checkbox" name="selected[]" value="<?= $row['id']; ?>">
                             Selecionar
                         </label>
-                        <div id="card-<?= $row['id']; ?>"
-                            class="flex flex-col items-center gap-1 bg-white p-2 rounded-lg"
+                        <div id="card-<?= $row['id']; ?>" class="flex flex-col items-center gap-1 bg-white p-2 rounded-lg"
                             style="width: 380px; height: 120px;">
                             <div class="flex items-center justify-center space-x-4">
                                 <img src="assets/img/Logo.png" alt="Logo" class="h-[80px] w-[80px]">
@@ -105,31 +103,33 @@
                 <button type="button" id="exportImage" class="hidden bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                     Exportar como Imagem
                 </button>
-
                 <button type="button" id="exportPdfBatch" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
                     Exportar PDF em Lote
                 </button>
-
             </div>
         </form>
 
+        <!-- Paginação com setas e o marcador de página -->
         <div class="flex justify-center mt-8 space-x-4">
             <?php if ($page > 1): ?>
-                <a href="?page=<?= $page - 1; ?>" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">Anterior</a>
+                <a href="?page=<?= $page - 1; ?>" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded flex items-center space-x-2">
+                    <span>&lt;</span>
+                    <span>Anterior</span>
+                </a>
             <?php endif; ?>
 
-            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <a href="?page=<?= $i; ?>" class="px-4 py-2 rounded <?= $i === $page ? 'bg-blue-500 text-white' : 'bg-gray-300 hover:bg-gray-400'; ?>">
-                    <?= $i; ?>
-                </a>
-            <?php endfor; ?>
+            <span class="flex items-center space-x-2 text-gray-700">
+                <span>Página <?= $page; ?> de <?= $totalPages; ?></span>
+            </span>
 
             <?php if ($page < $totalPages): ?>
-                <a href="?page=<?= $page + 1; ?>" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">Próxima</a>
+                <a href="?page=<?= $page + 1; ?>" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded flex items-center space-x-2">
+                    <span>Próxima</span>
+                    <span>&gt;</span>
+                </a>
             <?php endif; ?>
         </div>
     </div>
-
     <script>
         document.getElementById('searchBar').addEventListener('input', function() {
             const searchValue = this.value.toLowerCase().trim();

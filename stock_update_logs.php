@@ -10,8 +10,17 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Configuração da paginação
+$limit = 10;  // Definindo o limite de registros por página
+$page = isset($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;  // Página atual
+$offset = ($page - 1) * $limit;
 
-// Buscar os registros de logs de alteração do estoque
+// Contar o número total de registros
+$totalStmt = $conn->query("SELECT COUNT(*) as total FROM stock_logs");
+$totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
+$totalPages = ceil($totalRecords / $limit);
+
+// Buscar os registros de logs de alteração do estoque com paginação
 $stmt = $conn->prepare("
     SELECT 
         l.id, 
@@ -28,8 +37,10 @@ $stmt = $conn->prepare("
     LEFT JOIN products p ON l.product_id = p.id
     JOIN users u ON l.user_id = u.id
     ORDER BY l.timestamp DESC
+    LIMIT :limit OFFSET :offset
 ");
-
+$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -52,7 +63,7 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <!-- Campo de Pesquisa e Botão de Exportação -->
         <div class="flex justify-between items-center mb-4">
-            <input type="text" id="searchInput" placeholder="Pesquisar..." class="w-2/3 border border-gray-300 rounded-lg p-2 text-center">
+            <input type="text" id="searchInput" placeholder="Pesquisar..." class="w-2/3 p-2 border border-gray-300 rounded-lg text-center">
             <button id="exportCSV" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
                 Exportar CSV
             </button>
@@ -92,12 +103,33 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?= $log['status']; ?>
                             </td>
                             <td class="border border-gray-300 p-2"><?= date("d/m/Y H:i", strtotime($log['timestamp'] . ' UTC')) ?></td>
-
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+
+        <!-- Paginação com setas e o marcador de página -->
+        <div class="flex justify-center mt-8 space-x-4">
+            <?php if ($page > 1): ?>
+                <a href="?page=<?= $page - 1; ?>" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded flex items-center space-x-2">
+                    <span>&lt;</span>
+                    <span>Anterior</span>
+                </a>
+            <?php endif; ?>
+
+            <span class="flex items-center space-x-2 text-gray-700">
+                <span>Página <?= $page; ?> de <?= $totalPages; ?></span>
+            </span>
+
+            <?php if ($page < $totalPages): ?>
+                <a href="?page=<?= $page + 1; ?>" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded flex items-center space-x-2">
+                    <span>Próxima</span>
+                    <span>&gt;</span>
+                </a>
+            <?php endif; ?>
+        </div>
+
     </div>
 
     <!-- Scripts -->
