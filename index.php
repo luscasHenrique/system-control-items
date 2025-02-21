@@ -66,7 +66,6 @@ include 'menu.php';
                     $offset = ($page - 1) * $limit;
 
                     // Buscar produtos
-                    // Buscar produtos excluindo os que possuem deleted_at
                     $stmt = $conn->prepare("
                     SELECT p.id, p.name, p.price, p.quantity, p.company, p.description, u.username, 
                     (p.price * p.quantity) AS total_value
@@ -103,6 +102,21 @@ include 'menu.php';
                     ?>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Paginação -->
+        <div class="flex justify-center mt-4">
+            <?php
+            // Paginacao - Exibir links de página
+            $stmt = $conn->prepare("SELECT COUNT(id) FROM products WHERE deleted_at IS NULL");
+            $stmt->execute();
+            $totalProducts = $stmt->fetchColumn();
+            $totalPages = ceil($totalProducts / $limit);
+
+            for ($i = 1; $i <= $totalPages; $i++) {
+                echo "<a href='?page=$i' class='px-4 py-2 mx-1 border border-gray-300 rounded-md hover:bg-gray-200'>$i</a>";
+            }
+            ?>
         </div>
     </div>
 
