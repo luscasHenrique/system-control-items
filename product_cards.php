@@ -23,12 +23,10 @@
         $page = isset($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
         $offset = ($page - 1) * $limit;
 
-        // Contar apenas produtos que não foram excluídos
-        $totalStmt = $conn->query("SELECT COUNT(*) as total FROM products WHERE deleted_at IS NULL");
+        $totalStmt = $conn->query("SELECT COUNT(*) as total FROM products");
         $totalRecords = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
         $totalPages = ceil($totalRecords / $limit);
 
-        // Buscar apenas produtos que não foram excluídos
         $stmt = $conn->prepare("SELECT id, qrcode FROM products WHERE deleted_at IS NULL LIMIT :limit OFFSET :offset");
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -77,6 +75,14 @@
                 <button type="button" id="exportPdf" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     Exportar para PDF
                 </button>
+                <button type="button" id="exportImage" class="hidden bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    Exportar como Imagem
+                </button>
+
+                <button type="button" id="exportPdfBatch" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                    Exportar PDF em Lote
+                </button>
+
             </div>
         </form>
 
@@ -96,6 +102,148 @@
             <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        document.getElementById('exportPdf').addEventListener('click', async () => {
+            const selectedCards = document.querySelectorAll('input[name="selected[]"]:checked');
+            if (selectedCards.length === 0) {
+                alert('Selecione pelo menos um cartão para exportar.');
+                return;
+            }
+
+            const {
+                jsPDF
+            } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const cardWidth = 100;
+            const cardHeight = 30;
+            const marginTop = 5;
+            const marginLeft = 8;
+            const columnGap = 5;
+            const rowGap = 7;
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            let x = marginLeft;
+            let y = marginTop;
+
+            for (const card of selectedCards) {
+                const cardId = card.value;
+                const cardElement = document.getElementById(`card-${cardId}`);
+                if (!cardElement) continue;
+
+                const canvas = await html2canvas(cardElement, {
+                    scale: 2
+                });
+                const imgData = canvas.toDataURL('image/png');
+
+                pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
+
+                if ((x + cardWidth + columnGap) > (pageWidth - marginLeft)) {
+                    x = marginLeft;
+                    y += cardHeight + rowGap;
+                } else {
+                    x += cardWidth + columnGap;
+                }
+
+                if (y + cardHeight > pageHeight - marginTop) {
+                    pdf.addPage();
+                    x = marginLeft;
+                    y = marginTop;
+                }
+            }
+
+            pdf.save('selected-cards.pdf');
+        });
+
+        document.getElementById('exportImage').addEventListener('click', async () => {
+            const selectedCards = document.querySelectorAll('input[name="selected[]"]:checked');
+            if (selectedCards.length === 0) {
+                alert('Selecione pelo menos um cartão para exportar.');
+                return;
+            }
+
+            for (const card of selectedCards) {
+                const cardId = card.value;
+                const cardElement = document.getElementById(`card-${cardId}`);
+                if (!cardElement) continue;
+
+                const canvas = await html2canvas(cardElement, {
+                    scale: 2
+                });
+                const imgData = canvas.toDataURL('image/png');
+
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = `card_${cardId}.png`;
+                link.click();
+            }
+        });
+
+        document.getElementById('exportPdfBatch').addEventListener('click', async () => {
+            const selectedCards = document.querySelectorAll('input[name="selected[]"]:checked');
+            if (selectedCards.length === 0) {
+                alert('Selecione pelo menos um cartão para exportar.');
+                return;
+            }
+
+            if (selectedCards.length > 1) {
+                alert('Por favor, selecione apenas um cartão para preencher toda a folha.');
+                return;
+            }
+
+            const {
+                jsPDF
+            } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
+            const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
+
+            const cardWidth = 100; // Largura da etiqueta
+            const cardHeight = 30; // Altura da etiqueta
+            const columns = 2; // Número de colunas por linha
+            const rows = 9; // Número de linhas por página
+            const marginX = 8; // Margem esquerda
+            const marginY = 5; // Margem superior
+            const columnGap = 5; // Espaço entre colunas
+            const rowGap = 7; // Espaço entre linhas
+
+            let x = marginX;
+            let y = marginY;
+            let count = 0;
+
+            const cardId = selectedCards[0].value;
+            const cardElement = document.getElementById(`card-${cardId}`);
+            if (!cardElement) return;
+
+            const canvas = await html2canvas(cardElement, {
+                scale: 2
+            });
+            const imgData = canvas.toDataURL('image/png');
+
+            for (let i = 0; i < columns * rows; i++) {
+                pdf.addImage(imgData, 'PNG', x, y, cardWidth, cardHeight);
+
+                count++;
+                if (count % columns === 0) {
+                    x = marginX;
+                    y += cardHeight + rowGap;
+                } else {
+                    x += cardWidth + columnGap;
+                }
+
+                // Adiciona uma nova página se atingir o limite de etiquetas na folha
+                if (count === columns * rows && i !== columns * rows - 1) {
+                    pdf.addPage();
+                    x = marginX;
+                    y = marginY;
+                    count = 0;
+                }
+            }
+
+            pdf.save(`etiqueta_lote_${cardId}.pdf`);
+        });
+    </script>
 </body>
 
 </html>
