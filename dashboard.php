@@ -1,6 +1,3 @@
-<?php include 'menu.php'; ?>
-<?php require 'src/db_connection.php'; ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -43,8 +40,18 @@
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
 
-            // Requisição para o backend para pegar os dados
-            fetch(`/path/to/your/api.php?product_name=${productName}&start_date=${startDate}&end_date=${endDate}`)
+            // URL da API com os parâmetros
+            const url = new URL('/src/api.php', window.location.origin);
+            const params = new URLSearchParams();
+
+            if (productName) params.append('product_name', productName);
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+
+            url.search = params.toString();
+
+            // Requisição para o backend
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     const dates = data.map(item => item.date);
