@@ -104,19 +104,32 @@ include 'menu.php';
             </table>
         </div>
 
-        <!-- Paginação -->
-        <div class="flex justify-center mt-4">
+        <!-- Paginação com setas e marcador de página -->
+        <div class="flex justify-center items-center mt-4 space-x-4">
             <?php
-            // Paginacao - Exibir links de página
+            // Paginacao - Exibir setas de navegação
             $stmt = $conn->prepare("SELECT COUNT(id) FROM products WHERE deleted_at IS NULL");
             $stmt->execute();
             $totalProducts = $stmt->fetchColumn();
             $totalPages = ceil($totalProducts / $limit);
 
-            for ($i = 1; $i <= $totalPages; $i++) {
-                echo "<a href='?page=$i' class='px-4 py-2 mx-1 border border-gray-300 rounded-md hover:bg-gray-200'>$i</a>";
-            }
+            $previousPage = $page > 1 ? $page - 1 : 1;
+            $nextPage = $page < $totalPages ? $page + 1 : $totalPages;
             ?>
+
+            <!-- Setas de navegação -->
+            <a href="?page=<?php echo $previousPage; ?>" class="px-4 py-2 mx-1 border border-gray-300 rounded-md hover:bg-gray-200">
+                ← Anterior
+            </a>
+
+            <!-- Número da página atual -->
+            <span class="px-4 py-2 mx-1 text-gray-700">
+                Página <?php echo $page; ?> de <?php echo $totalPages; ?>
+            </span>
+
+            <a href="?page=<?php echo $nextPage; ?>" class="px-4 py-2 mx-1 border border-gray-300 rounded-md hover:bg-gray-200">
+                Próxima →
+            </a>
         </div>
     </div>
 
@@ -150,7 +163,6 @@ include 'menu.php';
             </form>
         </div>
     </div>
-
 
     <!-- Scripts -->
     <script>
