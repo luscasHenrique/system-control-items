@@ -32,7 +32,8 @@ $stmt = $conn->prepare("
         l.current_quantity, 
         l.description, 
         l.status, 
-        l.timestamp
+        l.timestamp,
+        p.price
     FROM stock_logs l
     LEFT JOIN products p ON l.product_id = p.id
     JOIN users u ON l.user_id = u.id
@@ -81,6 +82,7 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th class="border border-gray-300 p-2">Usuário</th>
                         <th class="border border-gray-300 p-2">Valor da Atualização</th>
                         <th class="border border-gray-300 p-2">Quantidade Atual</th>
+                        <th class="border border-gray-300 p-2">Valor Total</th>
                         <th class="border border-gray-300 p-2">Descrição</th>
                         <th class="border border-gray-300 p-2">Status</th>
                         <th class="border border-gray-300 p-2">Data e Hora</th>
@@ -98,6 +100,9 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?= $log['change_value'] > 0 ? '+' : ''; ?><?= $log['change_value']; ?>
                             </td>
                             <td class="border border-gray-300 p-2"><?= $log['current_quantity']; ?></td>
+                            <td class="border border-gray-300 p-2 font-bold">
+                                R$ <?= number_format($log['current_quantity'] * $log['price'], 2, ',', '.'); ?>
+                            </td>
                             <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['description']); ?></td>
                             <td class="border border-gray-300 p-2 font-bold <?= $log['status'] == 'Excluído' ? 'text-red-500' : 'text-blue-500'; ?>">
                                 <?= $log['status']; ?>
