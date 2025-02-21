@@ -92,8 +92,10 @@ include 'menu.php';
 
                         if ($_SESSION['role'] === 'admin') {
                             echo "<td class='border border-gray-300 p-2'>
-                                    <button onclick='openEditModal({$row['id']})' class='text-blue-500 hover:text-blue-700'>Editar</button>
-                                    <button onclick='deleteProduct({$row['id']})' class='text-red-500 hover:text-red-700 ml-2'>Excluir</button>
+                                    <div class='flex gap-4 justify-center'>
+                                        <button onclick='openEditModal({$row['id']})' class='flex items-center gap-2 text-blue-500 hover:text-blue-700 transition duration-200'>📝 Editar</button>
+                                        <button onclick='deleteProduct({$row['id']})' class='flex items-center gap-2 text-red-500 hover:text-red-700 transition duration-200'>🗑️ Excluir</button>
+                                    </div>
                                   </td>";
                         }
                         echo "</tr>";
@@ -105,28 +107,36 @@ include 'menu.php';
     </div>
 
     <!-- Modal de Edição -->
-    <div id="editModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center hidden">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
-            <h2 class="text-xl font-bold mb-4 text-blue-700">Editar Produto</h2>
+    <div id="editModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center hidden p-4">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full sm:w-3/4 md:w-2/3 lg:w-1/3 max-h-screen overflow-y-auto">
+            <h2 class="text-xl font-bold mb-4 text-blue-700 text-center">Editar Produto</h2>
             <form id="editForm">
                 <input type="hidden" id="editProductId">
+
                 <label class="block font-bold">Nome:</label>
                 <input type="text" id="editName" class="w-full border p-2 rounded mb-2">
+
                 <label class="block font-bold">Preço:</label>
                 <input type="number" id="editPrice" class="w-full border p-2 rounded mb-2" step="0.01">
+
                 <label class="block font-bold">Quantidade:</label>
                 <input type="number" id="editQuantity" class="w-full border p-2 rounded mb-2">
+
                 <label class="block font-bold">Empresa:</label>
                 <input type="text" id="editCompany" class="w-full border p-2 rounded mb-2">
+
                 <label class="block font-bold">Descrição:</label>
                 <textarea id="editDescription" class="w-full border p-2 rounded mb-4"></textarea>
+
+                <!-- Botões -->
                 <div class="flex justify-between">
-                    <button type="button" id="closeModal" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Salvar</button>
+                    <button type="button" id="closeModal" class="bg-gray-500 text-white px-4 py-2 rounded w-1/2 mr-2">Cancelar</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded w-1/2">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
+
 
     <!-- Scripts -->
     <script>
