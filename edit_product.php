@@ -24,36 +24,41 @@ if (!$product) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
     $price = $_POST['price'];
-    $quantity = $_POST['quantity'];
+    $newQuantity = $_POST['quantity'];
     $company = $_POST['company'];
     $description = $_POST['description'];
+
+    // Calcular a diferença de quantidade
+    $quantityChange = $newQuantity - $product['quantity'];
 
     // Atualizar no banco de dados
     $updateStmt = $conn->prepare("UPDATE products SET name = :name, price = :price, quantity = :quantity, company = :company, description = :description WHERE id = :id");
     $updateStmt->bindParam(':name', $name);
     $updateStmt->bindParam(':price', $price);
-    $updateStmt->bindParam(':quantity', $quantity, PDO::PARAM_INT);
+    $updateStmt->bindParam(':quantity', $newQuantity, PDO::PARAM_INT);
     $updateStmt->bindParam(':company', $company);
     $updateStmt->bindParam(':description', $description);
     $updateStmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($updateStmt->execute()) {
         // **Registrar log após a edição**
-        $action = "Usuário $user_id editou o produto ID $id: ";
+        $action = "Usuário $user_id editou o produto ID $id.";
         $changes = [];
 
-        // Verifica quais campos foram alterados
-        if ($product['name'] !== $name) $changes[] = "Nome: '{$product['name']}' -> '$name'";
-        if ($product['price'] != $price) $changes[] = "Preço: '{$product['price']}' -> '$price'";
-        if ($product['quantity'] != $quantity) $changes[] = "Quantidade: '{$product['quantity']}' -> '$quantity'";
-        if ($product['company'] !== $company) $changes[] = "Empresa: '{$product['company']}' -> '$company'";
+        if ($product['name'] !== $name) $changes[] = "Nome: '{$product['name']}' → '$name'";
+        if ($product['price'] != $price) $changes[] = "Preço: '{$product['price']}' → '$price'";
+        if ($product['company'] !== $company) $changes[] = "Empresa: '{$product['company']}' → '$company'";
         if ($product['description'] !== $description) $changes[] = "Descrição alterada";
 
-        if (!empty($changes)) {
-            $action .= implode(", ", $changes);
-            $logStmt = $conn->prepare("INSERT INTO logs (user_id, action) VALUES (:user_id, :action)");
+        // Inserir log no stock_logs se a quantidade mudar
+        if ($quantityChange !== 0) {
+            $logStmt = $conn->prepare("INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity, description, status, timestamp) 
+                                       VALUES (:product_id, :user_id, :change_value, :current_quantity, :description, 'Editado', NOW())");
+            $logStmt->bindParam(':product_id', $id, PDO::PARAM_INT);
             $logStmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-            $logStmt->bindParam(':action', $action);
+            $logStmt->bindParam(':change_value', $quantityChange, PDO::PARAM_INT);
+            $logStmt->bindParam(':current_quantity', $newQuantity, PDO::PARAM_INT);
+            $logStmt->bindParam(':description', $action);
             $logStmt->execute();
         }
 

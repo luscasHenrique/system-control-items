@@ -23,53 +23,49 @@ if (!isset($_SESSION['user_id'])) {
 $id = $data['productId'];
 $name = $data['name'];
 $price = $data['price'];
-$quantity = $data['quantity'];
+$newQuantity = $data['quantity'];
 $company = $data['company'];
 $description = $data['description'];
 $user_id = $_SESSION['user_id'];
 
 try {
     // Buscar estado anterior do produto
-    $stmt = $conn->prepare("SELECT * FROM products WHERE id = :id");
+    $stmt = $conn->prepare("SELECT quantity FROM products WHERE id = :id");
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    $oldProduct = $stmt->fetch(PDO::FETCH_ASSOC);
+    $oldQuantity = $stmt->fetchColumn();
 
-    if (!$oldProduct) {
+    if ($oldQuantity === false) {
         echo json_encode(["success" => false, "message" => "Produto não encontrado."]);
         exit();
     }
 
-    // Atualizar o produto no banco de dados
+    // Calcular diferença de quantidade
+    $quantityChange = $newQuantity - $oldQuantity;
+
+    // Atualizar produto
     $updateStmt = $conn->prepare("UPDATE products SET name = :name, price = :price, quantity = :quantity, company = :company, description = :description WHERE id = :id");
     $updateStmt->bindParam(':name', $name);
     $updateStmt->bindParam(':price', $price);
-    $updateStmt->bindParam(':quantity', $quantity, PDO::PARAM_INT);
+    $updateStmt->bindParam(':quantity', $newQuantity, PDO::PARAM_INT);
     $updateStmt->bindParam(':company', $company);
     $updateStmt->bindParam(':description', $description);
     $updateStmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($updateStmt->execute()) {
-        // Criar descrição do que foi alterado
-        $changes = [];
-        if ($oldProduct['name'] !== $name) $changes[] = "Nome: '{$oldProduct['name']}' → '$name'";
-        if ($oldProduct['price'] != $price) $changes[] = "Preço: '{$oldProduct['price']}' → '$price'";
-        if ($oldProduct['quantity'] != $quantity) $changes[] = "Quantidade: '{$oldProduct['quantity']}' → '$quantity'";
-        if ($oldProduct['company'] !== $company) $changes[] = "Empresa: '{$oldProduct['company']}' → '$company'";
-        if ($oldProduct['description'] !== $description) $changes[] = "Descrição alterada";
+        // Inserir no stock_logs caso a quantidade tenha mudado
+        if ($quantityChange !== 0) {
+            $logStmt = $conn->prepare("INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity, description, status) 
+                                       VALUES (:id, :user_id, :change_value, :quantity, :description, 'Editado')");
+            $logStmt->bindParam(':id', $id);
+            $logStmt->bindParam(':user_id', $user_id);
+            $logStmt->bindParam(':change_value', $quantityChange);
+            $logStmt->bindParam(':quantity', $newQuantity);
+            $logStmt->bindParam(':description', $description);
+            $logStmt->execute();
+        }
 
-        $changeDescription = implode(", ", $changes);
-
-        // Atualizar o `stock_logs` com as alterações
-        $logStmt = $conn->prepare("INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity, description, status) 
-                                   VALUES (:id, :user_id, 0, :quantity, :description, 'Editado')");
-        $logStmt->bindParam(':id', $id);
-        $logStmt->bindParam(':user_id', $user_id);
-        $logStmt->bindParam(':quantity', $quantity);
-        $logStmt->bindParam(':description', $changeDescription);
-        $logStmt->execute();
-
-        echo json_encode(["success" => true]);
+        echo json_encode(["success" => true, "message" => "Produto atualizado com sucesso."]);
     } else {
         echo json_encode(["success" => false, "message" => "Erro ao atualizar o banco de dados."]);
     }
