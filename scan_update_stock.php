@@ -1,5 +1,17 @@
-<?php include 'menu.php'; ?>
-<?php require 'src/db_connection.php'; ?>
+<?php
+include 'menu.php';
+require 'src/db_connection.php';
+session_start();
+
+// Verifica se o usuário está logado
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Verifica se o usuário é admin
+$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -36,8 +48,8 @@
 
             <!-- Botões de ação -->
             <div class="flex justify-between mt-6">
-                <button id="subtractStock" class="bg-yellow-500 text-white px-4 py-2 rounded-lg">Baixar Estoque</button>
-                <button id="addStock" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Adicionar Estoque</button>
+                <button id="subtractStock" class="bg-yellow-500 text-white px-4 py-2 rounded-lg <?php echo !$isAdmin ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo !$isAdmin ? 'disabled' : ''; ?>>Baixar Estoque</button>
+                <button id="addStock" class="bg-blue-500 text-white px-4 py-2 rounded-lg <?php echo !$isAdmin ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo !$isAdmin ? 'disabled' : ''; ?>>Adicionar Estoque</button>
             </div>
         </div>
 
@@ -97,8 +109,15 @@
             quantityInput.value = Math.max(1, currentValue + value);
         }
 
-        document.getElementById('subtractStock').addEventListener('click', () => updateStock('subtract'));
-        document.getElementById('addStock').addEventListener('click', () => updateStock('add'));
+        // Bloquear a atualização do estoque caso o usuário não seja administrador
+        const isAdmin = <?php echo json_encode($isAdmin); ?>;
+        if (!isAdmin) {
+            document.getElementById('subtractStock').addEventListener('click', () => alert('Apenas administradores podem atualizar o estoque.'));
+            document.getElementById('addStock').addEventListener('click', () => alert('Apenas administradores podem atualizar o estoque.'));
+        } else {
+            document.getElementById('subtractStock').addEventListener('click', () => updateStock('subtract'));
+            document.getElementById('addStock').addEventListener('click', () => updateStock('add'));
+        }
 
         function updateStock(action) {
             const productId = document.getElementById('productId').innerText;
