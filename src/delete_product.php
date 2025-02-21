@@ -8,7 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit();
 }
 
-// Captura o ID do produto da URL
 if (!isset($_GET['id'])) {
     echo json_encode(["success" => false, "message" => "ID do produto não fornecido."]);
     exit();
@@ -18,14 +17,14 @@ $id = $_GET['id'];
 $user_id = $_SESSION['user_id']; // ID do usuário autenticado
 
 try {
-    // Verifica se o produto existe antes de excluir
-    $stmt = $conn->prepare("SELECT name, quantity FROM products WHERE id = :id");
+    // Verifica se o produto existe e ainda não foi excluído
+    $stmt = $conn->prepare("SELECT name, quantity FROM products WHERE id = :id AND deleted_at IS NULL");
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$product) {
-        echo json_encode(["success" => false, "message" => "Produto não encontrado."]);
+        echo json_encode(["success" => false, "message" => "Produto não encontrado ou já excluído."]);
         exit();
     }
 

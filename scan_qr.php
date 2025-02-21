@@ -65,6 +65,7 @@
         });
 
         // Buscar informações do produto no backend
+        // Buscar informações do produto no backend
         function fetchProductInfo(qrCodeValue) {
             fetch(`src/fetch_by_qr.php?qrCode=${encodeURIComponent(qrCodeValue)}`)
                 .then(response => response.json())
@@ -80,6 +81,14 @@
                         document.getElementById('productQuantity').innerText = data.product.quantity;
                         document.getElementById('productCompany').innerText = data.product.company;
                         document.getElementById('productDescription').innerText = data.product.description;
+
+                        // Verifica se o produto foi excluído e exibe a mensagem
+                        if (data.product.deleted) {
+                            document.getElementById('errorMsg').innerText = "⚠️ Este produto foi excluído!";
+                        } else {
+                            document.getElementById('errorMsg').innerText = "";
+                        }
+
                         document.getElementById('productInfo').classList.remove('hidden');
                         document.getElementById('refreshBtn').classList.remove('hidden');
                     } else {
@@ -91,6 +100,7 @@
                     document.getElementById('errorMsg').innerText = "Erro ao buscar informações do produto.";
                 });
         }
+
 
         // Função para limpar os campos
         document.getElementById('refreshBtn').addEventListener('click', () => {
