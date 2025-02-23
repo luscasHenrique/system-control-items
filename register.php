@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
-    $role = 'user'; // Função padrão
+    $role = $_POST['role'] ?? 'Viewer'; // Função padrão é 'Viewer'
 
     if (empty($username) || empty($password)) {
         header('Location: register.php?error=Preencha todos os campos');
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        // Inserir novo usuário com função padrão 'user'
+        // Inserir novo usuário com o role escolhido ou 'Viewer'
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $insertStmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (:username, :password, :role)");
         $insertStmt->bindParam(':username', $username);
@@ -89,6 +89,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 class="w-full border border-gray-300 rounded-lg p-2 mb-4"
                 placeholder="Digite a senha"
                 required>
+
+            <label for="role" class="block font-semibold mb-2">Cargo:</label>
+            <select name="role" id="role" class="w-full border border-gray-300 rounded-lg p-2 mb-4">
+                <option value="Admin">Administrador</option>
+                <option value="Editor">Editor</option>
+                <option value="Viewer" selected>Visualizador</option>
+                <option value="Seller">Vendedor</option>
+                <option value="SuperAdmin">Super Administrador</option>
+            </select>
 
             <button
                 type="submit"

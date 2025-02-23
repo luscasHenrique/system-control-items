@@ -5,7 +5,7 @@ require 'db_connection.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
-    $role = 'user'; // Função padrão para todos os novos usuários
+    $role = 'Viewer'; // Função padrão para todos os novos usuários, agora 'Viewer'
 
     if (empty($username) || empty($password)) {
         header('Location: ../register.php?error=Preencha todos os campos');
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
 
-        // Inserir novo usuário com função padrão 'user'
+        // Inserir novo usuário com função padrão 'Viewer'
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $insertStmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (:username, :password, :role)");
         $insertStmt->bindParam(':username', $username);

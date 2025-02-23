@@ -2,7 +2,7 @@
 session_start();
 require 'src/db_connection.php';
 
-// Verificar se o usuário é admin
+// Verificar se o usuário está logado e se é administrador
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: index.php');
     exit();
@@ -28,10 +28,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_user'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_role'])) {
     $user_id = $_POST['user_id'];
     $role = $_POST['role'];
-    $stmt = $conn->prepare("UPDATE users SET role = :role WHERE id = :id");
-    $stmt->bindParam(':role', $role);
+
+    // Verificar se o cargo enviado é diferente do atual
+    $stmt = $conn->prepare("SELECT role FROM users WHERE id = :id");
     $stmt->bindParam(':id', $user_id);
     $stmt->execute();
+    $currentRole = $stmt->fetchColumn();
+
+    if ($currentRole !== $role) {
+        $stmt = $conn->prepare("UPDATE users SET role = :role WHERE id = :id");
+        $stmt->bindParam(':role', $role);
+        $stmt->bindParam(':id', $user_id);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            header('Location: manage_users.php?success=Cargo atualizado com sucesso!');
+        } else {
+            header('Location: manage_users.php?error=Erro ao atualizar cargo ou nenhum dado foi alterado.');
+        }
+    } else {
+        header('Location: manage_users.php?error=O cargo já está com o valor atual.');
+    }
 }
 
 // Alterar senha do usuário
@@ -81,8 +98,11 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <input type="text" name="username" placeholder="Usuário" required class="border p-2 rounded w-full">
                 <input type="password" name="password" placeholder="Senha" required class="border p-2 rounded w-full">
                 <select name="role" class="border p-2 rounded w-full">
-                    <option value="user">Usuário</option>
-                    <option value="admin">Administrador</option>
+                    <option value="Viewer">Visualizador</option>
+                    <option value="Admin">Administrador</option>
+                    <option value="Editor">Editor</option>
+                    <option value="Seller">Vendedor</option>
+                    <option value="SuperAdmin">Super Administrador</option>
                 </select>
                 <button type="submit" name="create_user" class="bg-green-500 text-white px-4 py-2 rounded w-full md:w-auto">Criar</button>
             </div>
@@ -108,9 +128,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <td class="border border-gray-300 p-2">
                                 <form method="POST" class="flex items-center justify-center space-x-2">
                                     <input type="hidden" name="user_id" value="<?= $user['id']; ?>">
-                                    <select name="role" class="border p-1 rounded">
-                                        <option value="user" <?= $user['role'] === 'user' ? 'selected' : ''; ?>>Usuário</option>
-                                        <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : ''; ?>>Administrador</option>
+                                    <select name="role" class="border p-2 rounded w-full">
+                                        <option value="Admin" <?= $user['role'] == 'Admin' ? 'selected' : ''; ?>>Administrador</option>
+                                        <option value="Editor" <?= $user['role'] == 'Editor' ? 'selected' : ''; ?>>Editor</option>
+                                        <option value="Viewer" <?= $user['role'] == 'Viewer' ? 'selected' : ''; ?>>Visualizador</option>
+                                        <option value="Seller" <?= $user['role'] == 'Seller' ? 'selected' : ''; ?>>Vendedor</option>
+                                        <option value="SuperAdmin" <?= $user['role'] == 'SuperAdmin' ? 'selected' : ''; ?>>Super Administrador</option>
                                     </select>
                                     <button type="submit" name="update_role" class="bg-blue-500 text-white px-3 py-1 rounded">✔️</button>
                                 </form>
