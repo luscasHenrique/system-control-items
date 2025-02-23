@@ -81,6 +81,7 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th class="border border-gray-300 p-2">Empresa</th>
                         <th class="border border-gray-300 p-2">Usuário</th>
                         <th class="border border-gray-300 p-2">Valor da Atualização</th>
+                        <th class="border border-gray-300 p-2">Valor R$ Atualização</th>
                         <th class="border border-gray-300 p-2">Quantidade Atual</th>
                         <th class="border border-gray-300 p-2">Valor Total</th>
                         <th class="border border-gray-300 p-2">Descrição</th>
@@ -98,6 +99,9 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['user_name']); ?></td>
                             <td class="border border-gray-300 p-2 font-bold <?= $log['change_value'] < 0 ? 'text-red-500' : 'text-green-500'; ?>">
                                 <?= $log['change_value'] > 0 ? '+' : ''; ?><?= $log['change_value']; ?>
+                            </td>
+                            <td class="border border-gray-300 p-2 font-bold <?= $log['change_value'] < 0 ? 'text-red-500' : 'text-green-500'; ?>">
+                                R$ <?= number_format($log['change_value'] * $log['price'], 2, ',', '.'); ?>
                             </td>
                             <td class="border border-gray-300 p-2"><?= $log['current_quantity']; ?></td>
                             <td class="border border-gray-300 p-2 font-bold">
