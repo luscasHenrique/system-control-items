@@ -28,8 +28,8 @@ if ($quantityChange < 1) {
 }
 
 try {
-    // Buscar a quantidade atual do produto
-    $stmt = $conn->prepare("SELECT quantity FROM products WHERE id = :productId");
+    // Buscar a quantidade atual e o preço do produto
+    $stmt = $conn->prepare("SELECT quantity, price FROM products WHERE id = :productId");
     $stmt->bindParam(':productId', $productId, PDO::PARAM_INT);
     $stmt->execute();
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -40,6 +40,7 @@ try {
     }
 
     $currentQuantity = (int) $product['quantity'];
+    $currentPrice = (float) $product['price'];  // Preço do produto
 
     // Definir a nova quantidade com base na ação
     if ($action === 'add') {
@@ -57,6 +58,12 @@ try {
         exit();
     }
 
+    // Calcular o valor da atualização
+    $updatedValue = $changeValue * $currentPrice;  // Valor da atualização
+
+    // Calcular o valor total da alteração
+    $totalValue = $currentPrice * $newQuantity;
+
     // Atualizar a quantidade no banco de dados
     $updateStmt = $conn->prepare("UPDATE products SET quantity = :newQuantity WHERE id = :productId");
     $updateStmt->bindParam(':newQuantity', $newQuantity, PDO::PARAM_INT);
@@ -65,13 +72,15 @@ try {
 
     // Registrar no log da alteração
     $logStmt = $conn->prepare("
-        INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity) 
-        VALUES (:productId, :userId, :changeValue, :newQuantity)
+        INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity, total_value, updated_value) 
+        VALUES (:productId, :userId, :changeValue, :newQuantity, :totalValue, :updatedValue)
     ");
     $logStmt->bindParam(':productId', $productId, PDO::PARAM_INT);
     $logStmt->bindParam(':userId', $userId, PDO::PARAM_INT);
     $logStmt->bindParam(':changeValue', $changeValue, PDO::PARAM_INT);
     $logStmt->bindParam(':newQuantity', $newQuantity, PDO::PARAM_INT);
+    $logStmt->bindParam(':totalValue', $totalValue, PDO::PARAM_STR);  // Valor total calculado
+    $logStmt->bindParam(':updatedValue', $updatedValue, PDO::PARAM_STR);  // Valor calculado da atualização
     $logStmt->execute();
 
     // Retornar resposta de sucesso

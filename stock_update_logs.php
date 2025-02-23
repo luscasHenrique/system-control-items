@@ -33,7 +33,9 @@ $stmt = $conn->prepare("
         l.description, 
         l.status, 
         l.timestamp,
-        p.price
+        p.price,
+        l.total_value,  -- Novo campo total_value
+        l.updated_value -- Novo campo updated_value
     FROM stock_logs l
     LEFT JOIN products p ON l.product_id = p.id
     JOIN users u ON l.user_id = u.id
@@ -100,12 +102,12 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <td class="border border-gray-300 p-2 font-bold <?= $log['change_value'] < 0 ? 'text-red-500' : 'text-green-500'; ?>">
                                 <?= $log['change_value'] > 0 ? '+' : ''; ?><?= $log['change_value']; ?>
                             </td>
-                            <td class="border border-gray-300 p-2 font-bold <?= $log['change_value'] < 0 ? 'text-red-500' : 'text-green-500'; ?>">
-                                R$ <?= number_format($log['change_value'] * $log['price'], 2, ',', '.'); ?>
+                            <td class="border border-gray-300 p-2 font-bold <?= $log['updated_value'] < 0 ? 'text-red-500' : 'text-green-500'; ?>">
+                                R$ <?= number_format($log['updated_value'], 2, ',', '.'); ?>
                             </td>
                             <td class="border border-gray-300 p-2"><?= $log['current_quantity']; ?></td>
                             <td class="border border-gray-300 p-2 font-bold">
-                                R$ <?= number_format($log['current_quantity'] * $log['price'], 2, ',', '.'); ?>
+                                R$ <?= number_format($log['total_value'], 2, ',', '.'); ?>
                             </td>
                             <td class="border border-gray-300 p-2"><?= htmlspecialchars($log['description']); ?></td>
                             <td class="border border-gray-300 p-2 font-bold <?= $log['status'] == 'Excluído' ? 'text-red-500' : 'text-blue-500'; ?>">

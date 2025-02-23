@@ -30,17 +30,20 @@ $user_id = $_SESSION['user_id'];
 
 try {
     // Buscar estado anterior do produto
-    $stmt = $conn->prepare("SELECT quantity FROM products WHERE id = :id");
+    $stmt = $conn->prepare("SELECT quantity, price FROM products WHERE id = :id");
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    $oldQuantity = $stmt->fetchColumn();
+    $oldProduct = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($oldQuantity === false) {
+    if (!$oldProduct) {
         echo json_encode(["success" => false, "message" => "Produto não encontrado."]);
         exit();
     }
 
-    // Calcular diferença de quantidade
+    $oldQuantity = $oldProduct['quantity'];
+    $currentPrice = (float) $oldProduct['price'];  // Preço atual do produto
+
+    // Calcular a diferença de quantidade
     $quantityChange = $newQuantity - $oldQuantity;
 
     // Atualizar produto
@@ -53,14 +56,22 @@ try {
     $updateStmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($updateStmt->execute()) {
+        // Calcular o valor da atualização
+        $updatedValue = $quantityChange * $currentPrice;  // Valor da atualização
+
+        // Calcular o valor total da alteração
+        $totalValue = $currentPrice * $newQuantity;
+
         // Inserir no stock_logs caso a quantidade tenha mudado
         if ($quantityChange !== 0) {
-            $logStmt = $conn->prepare("INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity, description, status) 
-                                       VALUES (:id, :user_id, :change_value, :quantity, :description, 'Editado')");
+            $logStmt = $conn->prepare("INSERT INTO stock_logs (product_id, user_id, change_value, current_quantity, total_value, updated_value, description, status) 
+                                       VALUES (:id, :user_id, :change_value, :quantity, :total_value, :updated_value, :description, 'Editado')");
             $logStmt->bindParam(':id', $id);
             $logStmt->bindParam(':user_id', $user_id);
             $logStmt->bindParam(':change_value', $quantityChange);
             $logStmt->bindParam(':quantity', $newQuantity);
+            $logStmt->bindParam(':total_value', $totalValue);  // Valor total calculado
+            $logStmt->bindParam(':updated_value', $updatedValue);  // Valor da atualização calculado
             $logStmt->bindParam(':description', $description);
             $logStmt->execute();
         }
