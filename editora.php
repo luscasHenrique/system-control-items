@@ -1,7 +1,10 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+
+// Verifica se o usuário está logado e se o papel é 'Admin', 'Seller' ou 'SuperAdmin'
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Seller', 'SuperAdmin'])) {
+    // Caso contrário, exibe mensagem e redireciona para a página de erro ou inicial
+    echo "<script>alert('Você não possui nível de acesso para visualizar esta página.'); window.location.href = 'unauthorized.php';</script>";
     exit();
 }
 
@@ -53,7 +56,7 @@ include 'menu.php';
                         <th class="border border-gray-300 p-2">Descrição</th>
                         <th class="border border-gray-300 p-2">Usuário</th>
                         <th class="border border-gray-300 p-2">Valor Total</th>
-                        <?php if ($_SESSION['role'] === 'Admin'): ?>
+                        <?php if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Seller' || $_SESSION['role'] === 'SuperAdmin'): ?>
                             <th class="border border-gray-300 p-2">Ações</th>
                         <?php endif; ?>
                     </tr>
@@ -65,13 +68,13 @@ include 'menu.php';
                     $page = isset($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
                     $offset = ($page - 1) * $limit;
 
-                    // Buscar produtos
+                    // Buscar produtos da "Luna Editora"
                     $stmt = $conn->prepare("
                     SELECT p.id, p.name, p.price, p.quantity, p.company, p.description, u.username, 
                     (p.price * p.quantity) AS total_value
                     FROM products p 
                     JOIN users u ON p.user_id = u.id 
-                    WHERE p.deleted_at IS NULL
+                    WHERE p.deleted_at IS NULL AND p.company = 'Luna Editora'
                     LIMIT :limit OFFSET :offset
                     ");
                     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -89,7 +92,7 @@ include 'menu.php';
                         echo "<td class='border border-gray-300 p-2'>{$row['username']}</td>";
                         echo "<td class='border border-gray-300 p-2'>R$ " . number_format($row['total_value'], 2, ',', '.') . "</td>";
 
-                        if ($_SESSION['role'] === 'Admin') {
+                        if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Seller' || $_SESSION['role'] === 'SuperAdmin') {
                             echo "<td class='border border-gray-300 p-2'>
                                     <div class='flex gap-4 justify-center'>
                                         <button onclick='openEditModal({$row['id']})' class='flex items-center gap-2 text-blue-500 hover:text-blue-700 transition duration-200'>📝 Editar</button>
@@ -108,7 +111,7 @@ include 'menu.php';
         <div class="flex justify-center items-center mt-4 space-x-4">
             <?php
             // Paginacao - Exibir setas de navegação
-            $stmt = $conn->prepare("SELECT COUNT(id) FROM products WHERE deleted_at IS NULL");
+            $stmt = $conn->prepare("SELECT COUNT(id) FROM products WHERE deleted_at IS NULL AND company = 'Luna Editora'");
             $stmt->execute();
             $totalProducts = $stmt->fetchColumn();
             $totalPages = ceil($totalProducts / $limit);
@@ -188,7 +191,7 @@ include 'menu.php';
                         <td class="border border-gray-300 p-2">${product.description}</td>
                         <td class="border border-gray-300 p-2">${product.username}</td>
                         <td class="border border-gray-300 p-2">R$ ${parseFloat(product.total_value).toFixed(2).replace('.', ',')}</td>
-                        <?php if ($_SESSION['role'] === 'Admin'): ?>
+                        <?php if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Seller' || $_SESSION['role'] === 'SuperAdmin'): ?>
                             <td class="border border-gray-300 p-2">
                                 <button onclick="openEditModal(${product.id})" class="text-blue-500 hover:text-blue-700">Editar</button>
                                 <button onclick="deleteProduct(${product.id})" class="text-red-500 hover:text-red-700 ml-2">Excluir</button>
@@ -202,103 +205,6 @@ include 'menu.php';
                 console.error('Erro na pesquisa:', error);
             }
         });
-
-
-        async function openEditModal(productId) {
-            try {
-                const response = await fetch(`src/get_product.php?id=${productId}`);
-                const product = await response.json();
-
-                if (!product.success) {
-                    alert("Erro ao carregar os dados do produto.");
-                    return;
-                }
-
-                document.getElementById('editProductId').value = product.data.id;
-                document.getElementById('editName').value = product.data.name;
-                document.getElementById('editPrice').value = product.data.price;
-                document.getElementById('editQuantity').value = product.data.quantity;
-                document.getElementById('editCompany').value = product.data.company;
-                document.getElementById('editDescription').value = product.data.description;
-
-                document.getElementById('editModal').classList.remove('hidden');
-            } catch (error) {
-                alert("Erro ao abrir o modal.");
-            }
-        }
-
-        document.getElementById('closeModal').addEventListener('click', function() {
-            document.getElementById('editModal').classList.add('hidden');
-        });
-
-        document.getElementById('editForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-
-            const productId = document.getElementById('editProductId').value;
-            const name = document.getElementById('editName').value;
-            const price = document.getElementById('editPrice').value;
-            const quantity = document.getElementById('editQuantity').value;
-            const company = document.getElementById('editCompany').value;
-            const description = document.getElementById('editDescription').value;
-
-            const data = {
-                productId,
-                name,
-                price,
-                quantity,
-                company,
-                description
-            };
-
-            try {
-                const response = await fetch('src/update_product.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-                console.log(result); // Exibe a resposta no console para depuração
-
-                if (result.success) {
-                    alert('Produto atualizado com sucesso!');
-                    document.getElementById('editModal').classList.add('hidden'); // Fecha o modal
-                    location.reload(); // Atualiza a página para refletir os dados atualizados
-                } else {
-                    alert('Erro ao atualizar o produto: ' + result.message);
-                }
-            } catch (error) {
-                alert('Erro ao enviar os dados: ' + error.message);
-                console.error(error);
-            }
-        });
-
-        async function deleteProduct(productId) {
-            if (confirm('Tem certeza que deseja excluir este produto?')) {
-                try {
-                    const response = await fetch(`src/delete_product.php?id=${productId}`, {
-                        method: 'GET'
-                    });
-
-                    const text = await response.text(); // Captura a resposta como texto
-                    console.log(text); // Exibe a resposta no console para depuração
-
-                    const result = JSON.parse(text); // Tenta converter para JSON
-
-                    if (result.success) {
-                        alert('Produto excluído com sucesso!');
-                        location.reload(); // Recarrega a página para atualizar a lista de produtos
-                    } else {
-                        alert('Erro ao excluir o produto: ' + result.message);
-                    }
-                } catch (error) {
-                    alert('Erro ao enviar a requisição: ' + error.message);
-                    console.error(error);
-                }
-            }
-        }
     </script>
 
 </body>

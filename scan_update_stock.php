@@ -9,8 +9,8 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Verifica se o usuário é admin
-$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+// Verifica se o usuário é Admin
+$isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
 ?>
 
 <!DOCTYPE html>
@@ -109,11 +109,11 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
             quantityInput.value = Math.max(1, currentValue + value);
         }
 
-        // Bloquear a atualização do estoque caso o usuário não seja administrador
+        // Bloquear a atualização do estoque caso o usuário não seja Administrador
         const isAdmin = <?php echo json_encode($isAdmin); ?>;
         if (!isAdmin) {
-            document.getElementById('subtractStock').addEventListener('click', () => alert('Apenas administradores podem atualizar o estoque.'));
-            document.getElementById('addStock').addEventListener('click', () => alert('Apenas administradores podem atualizar o estoque.'));
+            document.getElementById('subtractStock').addEventListener('click', () => alert('Apenas Administradores podem atualizar o estoque.'));
+            document.getElementById('addStock').addEventListener('click', () => alert('Apenas Administradores podem atualizar o estoque.'));
         } else {
             document.getElementById('subtractStock').addEventListener('click', () => updateStock('subtract'));
             document.getElementById('addStock').addEventListener('click', () => updateStock('add'));

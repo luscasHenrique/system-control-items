@@ -2,8 +2,8 @@
 session_start();
 require 'src/db_connection.php';
 
-// Verifica se o usuário está logado e se é administrador
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+// Verifica se o usuário está logado e se é Administrador
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
     header('Location: index.php?error=Acesso negado.');
     exit();
 }
