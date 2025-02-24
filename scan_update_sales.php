@@ -47,8 +47,8 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
 
             <!-- Botões de ação -->
             <div class="flex justify-between mt-6">
-                <button id="subtractStock" class="bg-yellow-500 text-white px-4 py-2 rounded-lg <?php echo !$isAdmin ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo !$isAdmin ? 'disabled' : ''; ?>>Estorno</button>
-                <button id="addStock" class="bg-blue-500 text-white px-4 py-2 rounded-lg <?php echo !$isAdmin ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo !$isAdmin ? 'disabled' : ''; ?>>Venda</button>
+                <button id="addStock" class="bg-yellow-500 text-white px-4 py-2 rounded-lg <?php echo !$isAdmin ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo !$isAdmin ? 'disabled' : ''; ?>>Estorno</button>
+                <button id="subtractStock" class="bg-blue-500 text-white px-4 py-2 rounded-lg <?php echo !$isAdmin ? 'opacity-50 cursor-not-allowed' : ''; ?>" <?php echo !$isAdmin ? 'disabled' : ''; ?>>Venda</button>
             </div>
         </div>
 
