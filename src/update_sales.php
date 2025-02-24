@@ -8,83 +8,75 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Captura os dados da requisição JSON
+$userId = $_SESSION['user_id']; // Pegando o ID do usuário da sessão
+
+// Recebe os dados do frontend (ID do produto, quantidade e status)
 $data = json_decode(file_get_contents("php://input"), true);
+$productId = $data['productId'];
+$quantity = $data['quantity']; // Quantidade vendida ou estornada
+$status = $data['status']; // 'Venda' ou 'Estorno'
 
-// Verifica se os dados necessários foram enviados
-if (!isset($data['productId'], $data['quantity'], $data['action'])) {
-    echo json_encode(["success" => false, "message" => "Dados incompletos."]);
-    exit();
-}
-
-$productId = (int) $data['productId'];
-$quantityChange = (int) $data['quantity'];
-$action = $data['action'];
-$userId = $_SESSION['user_id']; // Usuário logado
-
-// Verifica se a quantidade é maior que zero
-if ($quantityChange < 1) {
-    echo json_encode(["success" => false, "message" => "A quantidade deve ser maior que zero."]);
-    exit();
-}
-
-// Validação de ação
-if (!in_array($action, ['venda', 'estorno'])) {
-    echo json_encode(["success" => false, "message" => "Ação inválida."]);
+// Verifica se os dados estão corretos
+if (!isset($productId) || !isset($quantity) || !is_numeric($quantity) || $quantity <= 0 || !isset($status)) {
+    echo json_encode(['success' => false, 'message' => 'Dados inválidos.']);
     exit();
 }
 
 try {
-    // Buscar a quantidade atual e o preço do produto
-    $stmt = $conn->prepare("SELECT quantity, price FROM products WHERE id = :productId");
-    $stmt->bindParam(':productId', $productId, PDO::PARAM_INT);
-    $stmt->execute();
+    // Inicia a transação
+    $conn->beginTransaction();
+
+    // Busca o produto no banco para verificar o preço
+    $stmt = $conn->prepare("SELECT price FROM products WHERE id = :productId");
+    $stmt->execute([':productId' => $productId]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$product) {
-        echo json_encode(["success" => false, "message" => "Produto não encontrado."]);
-        exit();
+    if ($product) {
+        $price = $product['price'];
+        $totalValue = $price * $quantity;
+
+        // Se for 'Venda', o totalValue deve ser positivo
+        if ($status == 'Venda') {
+            $totalValue = abs($totalValue); // Garante que o valor da venda será positivo
+        } else if ($status == 'Estorno') {
+            // Se for 'Estorno', o totalValue pode ser negativo
+            $totalValue = -abs($totalValue);
+        }
+
+        // Insere o log no banco de dados (vendendo ou estornando o produto)
+        $stmt = $conn->prepare("INSERT INTO sales (product_id, user_id, quantity, total_value, status) 
+                               VALUES (:productId, :userId, :quantity, :totalValue, :status)");
+
+        // Insere o log da venda ou estorno
+        $stmt->execute([
+            ':productId' => $productId,
+            ':userId' => $userId,
+            ':quantity' => $quantity,
+            ':totalValue' => $totalValue,
+            ':status' => $status
+        ]);
+
+        // Atualiza a quantidade do produto no estoque
+        $stmtUpdate = $conn->prepare("UPDATE products SET quantity = quantity + :quantity WHERE id = :productId");
+        $stmtUpdate->execute([
+            ':quantity' => ($status == 'Venda') ? -$quantity : $quantity, // Para venda diminui, para estorno adiciona
+            ':productId' => $productId
+        ]);
+
+        // Commit da transação
+        $conn->commit();
+
+        // Resposta de sucesso
+        echo json_encode([
+            'success' => true,
+            'message' => 'Produto atualizado com sucesso para ' . $status . '!',
+            'newQuantity' => $quantity
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Produto não encontrado!']);
     }
-
-    $currentQuantity = (int) $product['quantity'];
-    $currentPrice = (float) $product['price'];  // Preço do produto
-
-    // Definir a nova quantidade com base na ação
-    if ($action === 'venda') {
-        $newQuantity = $currentQuantity - $quantityChange;
-        $changeValue = -$quantityChange; // Para log, valor negativo
-    } elseif ($action === 'estorno') {
-        $newQuantity = $currentQuantity + $quantityChange;
-        $changeValue = $quantityChange; // Para log, valor positivo
-    }
-
-    // Calcular o valor da atualização
-    $updatedValue = abs($changeValue) * $currentPrice;  // Valor da atualização, sempre positivo para "Venda"
-
-    // Atualizar a quantidade no banco de dados
-    $updateStmt = $conn->prepare("UPDATE products SET quantity = :newQuantity WHERE id = :productId");
-    $updateStmt->bindParam(':newQuantity', $newQuantity, PDO::PARAM_INT);
-    $updateStmt->bindParam(':productId', $productId, PDO::PARAM_INT);
-    $updateStmt->execute();
-
-    // Registrar no log da alteração
-    $logStmt = $conn->prepare("
-        INSERT INTO sales (product_id, user_id, quantity, total_value, status) 
-        VALUES (:productId, :userId, :quantity, :totalValue, :status)
-    ");
-    $logStmt->bindParam(':productId', $productId, PDO::PARAM_INT);
-    $logStmt->bindParam(':userId', $userId, PDO::PARAM_INT);
-    $logStmt->bindParam(':quantity', $quantityChange, PDO::PARAM_INT);
-    $logStmt->bindParam(':totalValue', $updatedValue, PDO::PARAM_STR);  // Valor total calculado
-    $logStmt->bindParam(':status', $action === 'venda' ? 'Venda' : 'Estorno', PDO::PARAM_STR);
-    $logStmt->execute();
-
-    // Retornar resposta de sucesso
-    echo json_encode([
-        "success" => true,
-        "message" => ucfirst($action) . " realizado com sucesso!",
-        "newQuantity" => $newQuantity
-    ]);
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "Erro no banco de dados.", "error" => $e->getMessage()]);
+} catch (Exception $e) {
+    // Se houver erro, faz rollback
+    $conn->rollBack();
+    echo json_encode(['success' => false, 'message' => 'Erro ao registrar a venda ou estorno: ' . $e->getMessage()]);
 }

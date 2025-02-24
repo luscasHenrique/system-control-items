@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Verifica se o usuário tem permissão de administrador
 $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
 ?>
 
@@ -19,7 +18,7 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atualizar Vendas via QR Code</title>
+    <title>Atualizar Estoque - Venda/Estorno</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -115,8 +114,8 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
             document.getElementById('subtractStock').addEventListener('click', () => alert('Apenas Administradores podem atualizar o estoque.'));
             document.getElementById('addStock').addEventListener('click', () => alert('Apenas Administradores podem atualizar o estoque.'));
         } else {
-            document.getElementById('subtractStock').addEventListener('click', () => updateStock('estorno'));
-            document.getElementById('addStock').addEventListener('click', () => updateStock('venda'));
+            document.getElementById('subtractStock').addEventListener('click', () => updateStock('Venda'));
+            document.getElementById('addStock').addEventListener('click', () => updateStock('Estorno'));
         }
 
         function updateStock(action) {
@@ -131,7 +130,7 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                     body: JSON.stringify({
                         productId,
                         quantity,
-                        action
+                        status: action
                     })
                 })
                 .then(response => response.json())
