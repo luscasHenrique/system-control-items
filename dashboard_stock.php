@@ -25,6 +25,12 @@ if (isset($_POST['start_date']) && isset($_POST['end_date'])) {
     $date_filter = "AND l.timestamp BETWEEN '$start_date' AND '$end_date'";
 }
 
+// Caso o filtro de "Limpar Filtro" seja acionado, resetamos os filtros
+if (isset($_POST['clear_filter'])) {
+    $product_filter = '';
+    $date_filter = '';
+}
+
 // Dados para os gráficos
 // 1. Gráfico de Quantidade Total por Produto
 $stmt = $conn->prepare("SELECT p.name AS product_name, p.quantity 
@@ -58,24 +64,20 @@ $price_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .chart-container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .chart-container {}
 
-        .charts-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
+        .charts-wrapper {}
 
         @media (max-width: 768px) {
             .charts-wrapper {
                 grid-template-columns: 1fr;
             }
+        }
+
+        .checkbox-container {
+            max-height: 80px;
+            overflow-y: auto;
+            padding-right: 10px;
         }
     </style>
 </head>
@@ -90,17 +92,17 @@ $price_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Filtro de Produtos -->
                 <div class="w-1/3">
                     <label for="products" class="block text-sm font-medium text-gray-700">Selecione os Produtos</label>
-                    <select id="products" name="products[]" multiple class="w-full p-2 border border-gray-300 rounded-lg">
+                    <div class="checkbox-container">
                         <?php
                         // Pega todos os produtos da empresa
                         $product_stmt = $conn->prepare("SELECT id, name FROM products");
                         $product_stmt->execute();
                         $products = $product_stmt->fetchAll(PDO::FETCH_ASSOC);
                         foreach ($products as $product) {
-                            echo "<option value='" . $product['id'] . "'>" . $product['name'] . "</option>";
+                            echo "<div><input type='checkbox' name='products[]' value='" . $product['id'] . "' class='mr-2'>" . $product['name'] . "</div>";
                         }
                         ?>
-                    </select>
+                    </div>
                 </div>
 
                 <!-- Filtro de Período -->
@@ -117,6 +119,7 @@ $price_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <div>
                         <button type="submit" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-700">Filtrar</button>
+                        <button type="submit" name="clear_filter" class="bg-red-500 text-white p-2 rounded-lg hover:bg-red-700">Limpar Filtro</button>
                     </div>
                 </div>
             </div>
@@ -127,19 +130,19 @@ $price_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h1 class="text-2xl font-bold mb-6 text-blue-700 text-center">Dashboard de Estoque</h1>
 
         <!-- Gráficos -->
-        <div class="charts-wrapper">
+        <div class="charts-wrapper grid grid-cols-1 justify-items-center  gap-4">
             <!-- Gráfico de Quantidade Total por Produto -->
-            <div class="chart-container">
+            <div class="chart-container w-full">
                 <canvas id="quantityChart"></canvas>
             </div>
 
             <!-- Gráfico de Valor Total de Estoque por Produto -->
-            <div class="chart-container">
+            <div class="chart-container  w-full">
                 <canvas id="stockValueChart"></canvas>
             </div>
 
             <!-- Gráfico de Preço Médio por Produto -->
-            <div class="chart-container">
+            <div class="chart-container  w-full">
                 <canvas id="priceChart"></canvas>
             </div>
         </div>
