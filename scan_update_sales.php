@@ -122,6 +122,9 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
             const productId = document.getElementById('productId').innerText;
             const quantity = document.getElementById('quantityChange').value;
 
+            // Captura a hora atual no navegador
+            const timestamp = new Date().toISOString(); // Formato: 'YYYY-MM-DDTHH:MM:SS.sssZ'
+
             fetch('src/update_sales.php', {
                     method: 'POST',
                     headers: {
@@ -130,7 +133,8 @@ $isAdmin = isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
                     body: JSON.stringify({
                         productId,
                         quantity,
-                        status: action
+                        status: action,
+                        timestamp: timestamp // Envia a hora do navegador
                     })
                 })
                 .then(response => response.json())
