@@ -20,7 +20,7 @@ session_start();
             <li><a href="product_cards.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">🖨️ Cartões QR Code</a></li>
             <li><a href="scan_update_stock.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">🔄 Atualizar Estoque</a></li>
             <li><a href="scan_qr.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📷 Escanear QR Code</a></li>
-            <li><a href="dashboard.php" class="hidden lock px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Dashboard</a></li>
+            <li><a href="dashboard_stock.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Dashboard</a></li>
 
             <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Admin'): ?>
                 <li><a href="register.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">⚙️ Registrar Usuário</a></li>
@@ -68,7 +68,7 @@ session_start();
             <a href="manage_users.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">🔧 Gerenciar Usuários</a>
         <?php endif; ?>
 
-        <a href="dashboard.php" class="hidden block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Dashboard</a>
+        <a href="dashboard_stock.php" class=" block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Dashboard</a>
 
         <a href="logout.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">🚪 Logout</a>
     </div>
