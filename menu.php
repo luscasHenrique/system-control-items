@@ -14,6 +14,7 @@ session_start();
             <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'Seller', 'SuperAdmin'])): ?>
                 <li><a href="editora.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Editora</a></li>
                 <li><a href="sales_products.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Vendas</a></li>
+                <li><a href="scan_update_sales.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">🔄 Atualizar Vendas</a></li>
             <?php endif; ?>
 
             <li><a href="add_product.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">➕ Adicionar Produto</a></li>
@@ -56,6 +57,7 @@ session_start();
         <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'Seller', 'SuperAdmin'])): ?>
             <a href="editora.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Editora</a>
             <a href="sales_products.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Vendas</a>
+            <a href="scan_update_sales.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">🔄 Atualizar Vendas</a>
         <?php endif; ?>
 
         <a href="add_product.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">➕ Adicionar Produto</a>

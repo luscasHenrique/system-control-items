@@ -22,8 +22,15 @@ $quantityChange = (int) $data['quantity'];
 $action = $data['action'];
 $userId = $_SESSION['user_id']; // Usuário logado
 
+// Verifica se a quantidade é maior que zero
 if ($quantityChange < 1) {
     echo json_encode(["success" => false, "message" => "A quantidade deve ser maior que zero."]);
+    exit();
+}
+
+// Validação de ação
+if (!in_array($action, ['add', 'subtract'])) {
+    echo json_encode(["success" => false, "message" => "Ação inválida."]);
     exit();
 }
 
@@ -53,15 +60,12 @@ try {
         }
         $newQuantity = $currentQuantity - $quantityChange;
         $changeValue = -$quantityChange; // Para log, valor negativo
-    } else {
-        echo json_encode(["success" => false, "message" => "Ação inválida."]);
-        exit();
     }
 
     // Calcular o valor da atualização
     $updatedValue = $changeValue * $currentPrice;  // Valor da atualização
 
-    // Calcular o valor total da alteração
+    // Calcular o valor total da alteração (não alterado pela ação, mas sim pela quantidade total)
     $totalValue = $currentPrice * $newQuantity;
 
     // Atualizar a quantidade no banco de dados
