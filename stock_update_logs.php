@@ -56,6 +56,24 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Alterações no Estoque</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .filters-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            min-width: 1000px;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -63,17 +81,24 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="max-w-7xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-6 text-blue-700 text-center">Registro de Alterações no Estoque</h1>
-
-        <!-- Campo de Pesquisa e Botão de Exportação -->
-        <div class="flex justify-between items-center mb-4">
-            <input type="text" id="searchInput" placeholder="Pesquisar..." class="w-2/3 p-2 border border-gray-300 rounded-lg text-center">
-            <button id="exportCSV" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+        <!-- Campo de Pesquisa, Filtros e Exportação -->
+        <div class="filters-container mb-4">
+            <input type="text" id="searchInput" placeholder="Pesquisar..." class="p-2 border border-gray-300 rounded-lg text-center flex-grow">
+            <select id="filterStatus" class="p-2 border border-gray-300 rounded-lg">
+                <option value="">Filtrar por Status</option>
+                <option value="Editado">Editado</option>
+                <option value="Excluido">Excluido</option>
+                <option value="Venda">Venda</option>
+                <option value="Estorno">Estorno</option>
+            </select>
+            <input type="date" id="filterDate" class="p-2 border border-gray-300 rounded-lg">
+            <button id="exportCSV"
+                class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
                 Exportar CSV
             </button>
         </div>
-
         <!-- Tabela -->
-        <div class="overflow-x-auto">
+        <div class="table-container">
             <table id="logTable" class="w-full border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-200">
                     <tr>
