@@ -1,6 +1,6 @@
 <?php
 session_start();
-date_default_timezone_set('America/Sao_Paulo');
+date_default_timezone_set('America/Sao_Paulo'); // 🔹 Ajusta o fuso horário do PHP para evitar problemas
 require 'db_connection.php';
 
 // Verifica se o usuário está logado
@@ -11,15 +11,14 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id']; // Pegando o ID do usuário da sessão
 
-// Recebe os dados do frontend (ID do produto, quantidade, status e timestamp)
+// Recebe os dados do frontend (ID do produto, quantidade e status)
 $data = json_decode(file_get_contents("php://input"), true);
 $productId = $data['productId'];
 $quantity = $data['quantity']; // Quantidade vendida ou estornada
 $status = $data['status']; // 'Venda' ou 'Estorno'
-$timestamp = $data['timestamp']; // Hora recebida do cliente (navegador)
 
 // Verifica se os dados estão corretos
-if (!isset($productId) || !isset($quantity) || !is_numeric($quantity) || $quantity <= 0 || !isset($status) || !isset($timestamp)) {
+if (!isset($productId) || !isset($quantity) || !is_numeric($quantity) || $quantity <= 0 || !isset($status)) {
     echo json_encode(['success' => false, 'message' => 'Dados inválidos.']);
     exit();
 }
@@ -49,19 +48,21 @@ try {
         // Se for 'Venda', diminui o estoque; se for 'Estorno', aumenta o estoque
         $newStock = ($status == 'Venda') ? $currentStock - $quantity : $currentStock + $quantity;
 
-        // Insere o log no banco de dados (vendendo ou estornando o produto)
+        // 🔹 Captura a data/hora correta do servidor PHP
+        $timestamp = date('Y-m-d H:i:s');
+
+        // Insere o log no banco de dados com a data/hora correta
         $stmt = $conn->prepare("INSERT INTO sales (product_id, user_id, quantity, total_value, status, stock_after_action, created_at) 
                                VALUES (:productId, :userId, :quantity, :totalValue, :status, :stockAfterAction, :createdAt)");
 
-        // Insere o log da venda ou estorno com o timestamp recebido
         $stmt->execute([
             ':productId' => $productId,
             ':userId' => $userId,
             ':quantity' => $quantity,
             ':totalValue' => $totalValue,
             ':status' => $status,
-            ':stockAfterAction' => $newStock, // Armazena o estoque após a ação
-            ':createdAt' => $timestamp // Usando o timestamp enviado pelo cliente
+            ':stockAfterAction' => $newStock,
+            ':createdAt' => $timestamp // 🔹 Agora a data/hora é gerada no PHP com o fuso correto
         ]);
 
         // Atualiza a quantidade do produto no estoque

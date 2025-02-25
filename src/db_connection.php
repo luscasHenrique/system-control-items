@@ -1,5 +1,6 @@
-
 <?php
+date_default_timezone_set('America/Sao_Paulo'); // 🔹 Ajusta o fuso horário no PHP
+
 $db_name = "u328979044_teste";
 $db_host = "srv803.hstgr.io";
 $db_user = "u328979044_teste";
@@ -11,4 +12,3 @@ try {
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
-?>
