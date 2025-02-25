@@ -16,7 +16,63 @@ $logStmt->bindParam(':action', $action);
 $logStmt->execute();
 
 include 'menu.php';
+
+// **Filtros e paginação**
+$limit = 10;
+$page = isset($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+$search = isset($_GET['search']) ? trim($_GET['search']) : "";
+$filterCompany = isset($_GET['company']) ? trim($_GET['company']) : "";
+$filterDate = isset($_GET['date']) ? trim($_GET['date']) : "";
+
+// **Consulta base**
+$query = "
+    SELECT p.id, p.name, p.price, p.quantity, p.company, p.description, u.username, 
+    (p.price * p.quantity) AS total_value, p.created_at
+    FROM products p 
+    JOIN users u ON p.user_id = u.id 
+    WHERE p.deleted_at IS NULL
+";
+
+// **Aplicando filtros na consulta**
+if (!empty($search)) {
+    $query .= " AND (p.name LIKE :search OR u.username LIKE :search OR p.company LIKE :search)";
+}
+if (!empty($filterCompany)) {
+    $query .= " AND p.company = :company";
+}
+if (!empty($filterDate)) {
+    $query .= " AND DATE(p.created_at) = :created_at";
+}
+
+// **Total de registros filtrados**
+$totalQuery = "SELECT COUNT(*) FROM products p WHERE p.deleted_at IS NULL";
+$totalStmt = $conn->prepare($totalQuery);
+$totalStmt->execute();
+$totalProducts = $totalStmt->fetchColumn();
+$totalPages = ceil($totalProducts / $limit);
+
+// **Ordenação e paginação**
+$query .= " ORDER BY p.created_at DESC LIMIT :limit OFFSET :offset";
+$stmt = $conn->prepare($query);
+
+if (!empty($search)) {
+    $stmt->bindValue(':search', "%$search%", PDO::PARAM_STR);
+}
+if (!empty($filterCompany)) {
+    $stmt->bindValue(':company', $filterCompany, PDO::PARAM_STR);
+}
+if (!empty($filterDate)) {
+    $stmt->bindValue(':created_at', $filterDate, PDO::PARAM_STR);
+}
+$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
+
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -25,6 +81,24 @@ include 'menu.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Produtos</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .table-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .filters-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            min-width: 1000px;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -32,16 +106,23 @@ include 'menu.php';
         <h1 class="text-2xl font-bold mb-4 text-blue-700 text-center">Lista de Produtos</h1>
 
         <!-- Campo de Pesquisa e Exportação -->
-        <div class="flex justify-between items-center mb-4">
-            <!-- Campo de Pesquisa -->
-            <input type="text" id="searchInput" placeholder="Pesquisar produtos..." class="w-2/3 border border-gray-300 rounded-lg p-2 text-center">
-            <a href="export_to_csv.php" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
-                Download CSV
-            </a>
+        <div class="filters-container mb-4">
+            <input type="text" id="searchInput" placeholder="Pesquisar..." class="p-2 border border-gray-300 rounded-lg text-center flex-grow">
+            <select id="filterStatus" class="hidden p-2 border border-gray-300 rounded-lg">
+                <option value="">Filtrar por Empresa</option>
+                <option value="Luna Editora">Luna Editora</option>
+                <option value=""></option>
+            </select>
+            <input type="date" id="filterDate" class=" hidden p-2 border border-gray-300 rounded-lg">
+            <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                <a href="export_to_csv.php">
+                    Download CSV
+                </a>
+            </button>
         </div>
 
         <!-- Tabela de Produtos -->
-        <div class="overflow-x-auto">
+        <div class="table-container">
             <table class="w-full border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-200">
                     <tr>
