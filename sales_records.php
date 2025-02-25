@@ -87,6 +87,31 @@ $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
         table {
             min-width: 1000px;
         }
+
+        .status-venda {
+            color: #065f46;
+            font-weight: bold;
+        }
+
+        /* Verde */
+        .status-estorno {
+            color: #92400e;
+            font-weight: bold;
+        }
+
+        /* Amarelo */
+        .valor-venda {
+            color: #065f46;
+            font-weight: bold;
+        }
+
+        /* Verde */
+        .valor-estorno {
+            color: #92400e;
+            font-weight: bold;
+        }
+
+        /* Amarelo */
     </style>
 </head>
 
@@ -111,44 +136,49 @@ $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <!-- Tabela Responsiva -->
-        <div class="table-container">
+        <div class="overflow-x-auto">
             <table id="salesTable" class="w-full border-collapse border border-gray-300 text-center">
                 <thead class="bg-gray-200">
                     <tr>
                         <th class="py-2 px-4 border-b">ID</th>
                         <th class="py-2 px-4 border-b">ID Produto</th>
-                        <th class="py-2 px-4 border-b">Produto</th>
-                        <th class="py-2 px-4 border-b">Empresa</th>
-                        <th class="py-2 px-4 border-b">Usuário</th>
-                        <th class="py-2 px-4 border-b">Quantidade Estoque</th>
-                        <th class="py-2 px-4 border-b">Valor R$ Estoque</th>
-                        <th class="py-2 px-4 border-b">Quantidade Vendida</th>
-                        <th class="py-2 px-4 border-b">Valor R$ Venda</th>
-                        <th class="py-2 px-4 border-b">Descrição</th>
+                        <th class="py-2 px-4 border-b min-w-[150px]">Produto</th>
+                        <th class="py-2 px-4 border-b hidden md:table-cell">Empresa</th>
+                        <th class="py-2 px-4 border-b hidden md:table-cell">Usuário</th>
+                        <th class="py-2 px-4 border-b">Qtd Estoque</th>
+                        <th class="py-2 px-4 border-b hidden md:table-cell">Valor Estoque</th>
+                        <th class="py-2 px-4 border-b">Qtd Vendida</th>
+                        <th class="py-2 px-4 border-b min-w-[150px]">Valor Venda</th>
+                        <th class="py-2 px-4 border-b hidden lg:table-cell">Descrição</th>
                         <th class="py-2 px-4 border-b">Status</th>
                         <th class="py-2 px-4 border-b">Data</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($sales as $sale): ?>
+                        <?php
+                        $statusClass = $sale['status'] === 'Venda' ? 'text-green-700 font-bold' : 'text-yellow-700 font-bold';
+                        $valorClass = $sale['status'] === 'Venda' ? 'text-green-700 font-bold' : 'text-yellow-700 font-bold';
+                        ?>
                         <tr>
                             <td class="py-2 px-4 border-b"><?= $sale['id']; ?></td>
                             <td class="py-2 px-4 border-b"><?= $sale['product_id']; ?></td>
-                            <td class="py-2 px-4 border-b"><?= htmlspecialchars($sale['product_name']); ?></td>
-                            <td class="py-2 px-4 border-b"><?= htmlspecialchars($sale['company']); ?></td>
-                            <td class="py-2 px-4 border-b"><?= htmlspecialchars($sale['user_name']); ?></td>
+                            <td class="py-2 px-4 border-b min-w-[150px] truncate"><?= htmlspecialchars($sale['product_name']); ?></td>
+                            <td class="py-2 px-4 border-b hidden md:table-cell"><?= htmlspecialchars($sale['company']); ?></td>
+                            <td class="py-2 px-4 border-b hidden md:table-cell"><?= htmlspecialchars($sale['user_name']); ?></td>
                             <td class="py-2 px-4 border-b"><?= $sale['stock_quantity']; ?></td>
-                            <td class="py-2 px-4 border-b">R$ <?= number_format($sale['total_stock_value'], 2, ',', '.'); ?></td>
+                            <td class="py-2 px-4 border-b hidden md:table-cell">R$ <?= number_format($sale['total_stock_value'], 2, ',', '.'); ?></td>
                             <td class="py-2 px-4 border-b"><?= $sale['sold_quantity']; ?></td>
-                            <td class="py-2 px-4 border-b">R$ <?= number_format($sale['total_sales_value'], 2, ',', '.'); ?></td>
-                            <td class="py-2 px-4 border-b"><?= htmlspecialchars($sale['description']); ?></td>
-                            <td class="py-2 px-4 border-b"><?= $sale['status']; ?></td>
-                            <td class="py-2 px-4 border-b"><?= date('d/m/Y H:i:s', strtotime($sale['created_at'])); ?></td>
+                            <td class="py-2 px-4 border-b min-w-[150px] truncate"><span class="<?= $valorClass; ?>">R$ <?= number_format($sale['total_sales_value'], 2, ',', '.'); ?></span></td>
+                            <td class="py-2 px-4 border-b hidden lg:table-cell"><?= htmlspecialchars($sale['description']); ?></td>
+                            <td class="py-2 px-4 border-b"><span class="<?= $statusClass; ?>"><?= $sale['status']; ?></span></td>
+                            <td class="py-2 px-4 border-b whitespace-nowrap"><?= date('d/m/Y H:i:s', strtotime($sale['created_at'])); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+
 
         <!-- Paginação -->
         <div class="flex justify-center mt-8 space-x-4">
