@@ -13,7 +13,7 @@ session_start();
             <!-- Verifica se o usuário tem a role 'Admin', 'Seller' ou 'SuperAdmin' -->
             <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'Seller', 'SuperAdmin'])): ?>
                 <li><a href="editora.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Editora</a></li>
-                <li><a href="sales_products.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Vendas</a></li>
+                <li><a href="sales_products.php" class="hidden block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Vendas</a></li>
                 <li><a href="sales_records.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">📊 Registro de Vendas</a></li>
                 <li><a href="scan_update_sales.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500 rounded">🛒Fazer Vendas</a></li>
             <?php endif; ?>
@@ -57,7 +57,7 @@ session_start();
         <!-- Verifica se o usuário tem a role 'Admin', 'Seller' ou 'SuperAdmin' -->
         <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'Seller', 'SuperAdmin'])): ?>
             <a href="editora.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Editora</a>
-            <a href="sales_products.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Vendas</a>
+            <a href="sales_products.php" class="hidden block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Vendas</a>
             <a href="sales_records.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500">📊 Registro de Vendas</a>
             <a href="scan_update_sales.php" class="block px-4 py-2 text-lg font-medium hover:bg-blue-500"> 🛒Fazer Vendas</a>
         <?php endif; ?>

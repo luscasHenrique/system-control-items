@@ -205,6 +205,103 @@ include 'menu.php';
                 console.error('Erro na pesquisa:', error);
             }
         });
+
+        // Abrir o modal de edição com os dados do produto selecionado
+        async function openEditModal(productId) {
+            try {
+                const response = await fetch(`src/get_product.php?id=${productId}`);
+                const product = await response.json();
+
+                if (!product.success) {
+                    alert("Erro ao carregar os dados do produto.");
+                    return;
+                }
+
+                document.getElementById('editProductId').value = product.data.id;
+                document.getElementById('editName').value = product.data.name;
+                document.getElementById('editPrice').value = product.data.price;
+                document.getElementById('editQuantity').value = product.data.quantity;
+                document.getElementById('editCompany').value = product.data.company;
+                document.getElementById('editDescription').value = product.data.description;
+
+                document.getElementById('editModal').classList.remove('hidden');
+            } catch (error) {
+                alert("Erro ao abrir o modal.");
+            }
+        }
+
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('editModal').classList.add('hidden');
+        });
+
+        document.getElementById('editForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const productId = document.getElementById('editProductId').value;
+            const name = document.getElementById('editName').value;
+            const price = document.getElementById('editPrice').value;
+            const quantity = document.getElementById('editQuantity').value;
+            const company = document.getElementById('editCompany').value;
+            const description = document.getElementById('editDescription').value;
+
+            const data = {
+                productId,
+                name,
+                price,
+                quantity,
+                company,
+                description
+            };
+
+            try {
+                const response = await fetch('src/update_product.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                console.log(result); // Exibe a resposta no console para depuração
+
+                if (result.success) {
+                    alert('Produto atualizado com sucesso!');
+                    document.getElementById('editModal').classList.add('hidden'); // Fecha o modal
+                    location.reload(); // Atualiza a página para refletir os dados atualizados
+                } else {
+                    alert('Erro ao atualizar o produto: ' + result.message);
+                }
+            } catch (error) {
+                alert('Erro ao enviar os dados: ' + error.message);
+                console.error(error);
+            }
+        });
+
+        async function deleteProduct(productId) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                try {
+                    const response = await fetch(`src/delete_product.php?id=${productId}`, {
+                        method: 'GET'
+                    });
+
+                    const text = await response.text(); // Captura a resposta como texto
+                    console.log(text); // Exibe a resposta no console para depuração
+
+                    const result = JSON.parse(text); // Tenta converter para JSON
+
+                    if (result.success) {
+                        alert('Produto excluído com sucesso!');
+                        location.reload(); // Recarrega a página para atualizar a lista de produtos
+                    } else {
+                        alert('Erro ao excluir o produto: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Erro ao enviar a requisição: ' + error.message);
+                    console.error(error);
+                }
+            }
+        }
     </script>
 
 </body>
