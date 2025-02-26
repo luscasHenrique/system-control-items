@@ -32,7 +32,7 @@ include 'menu.php';
 
 <body class="bg-gray-100 min-h-screen">
     <div class="max-w-7xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold mb-4 text-blue-700 text-center">Lista de Produtos</h1>
+        <h1 class="text-2xl font-bold mb-4 text-blue-700 text-center">Lista de Produtos Editora</h1>
 
         <!-- Campo de Pesquisa e Exportação -->
         <div class="flex justify-between items-center mb-4">
