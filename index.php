@@ -225,7 +225,9 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <input type="text" id="editName" class="w-full border p-2 rounded mb-2">
 
                 <label class="block font-bold">Preço:</label>
-                <input type="number" id="editPrice" class="w-full border p-2 rounded mb-2" step="0.01">
+                <input type="text" id="editPrice" class="w-full border p-2 rounded mb-2"
+                    placeholder="Digite o preço" oninput="formatPrice(this)">
+
 
                 <label class="block font-bold">Quantidade:</label>
                 <input type="number" id="editQuantity" class="w-full border p-2 rounded mb-2">
@@ -286,27 +288,54 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
         async function openEditModal(productId) {
-            try {
-                const response = await fetch(`src/get_product.php?id=${productId}`);
-                const product = await response.json();
+            fetch(`src/get_product.php?id=${productId}`)
+                .then(response => response.json())
+                .then(product => {
+                    if (!product.success) {
+                        alert("Erro ao carregar os dados do produto.");
+                        return;
+                    }
 
-                if (!product.success) {
-                    alert("Erro ao carregar os dados do produto.");
-                    return;
-                }
+                    document.getElementById("editProductId").value = product.data.id;
+                    document.getElementById("editName").value = product.data.name;
+                    document.getElementById("editPrice").value = formatPriceOnLoad(product.data.price); // Formata antes de exibir
+                    document.getElementById("editQuantity").value = product.data.quantity;
+                    document.getElementById("editCompany").value = product.data.company;
+                    document.getElementById("editDescription").value = product.data.description;
 
-                document.getElementById('editProductId').value = product.data.id;
-                document.getElementById('editName').value = product.data.name;
-                document.getElementById('editPrice').value = product.data.price;
-                document.getElementById('editQuantity').value = product.data.quantity;
-                document.getElementById('editCompany').value = product.data.company;
-                document.getElementById('editDescription').value = product.data.description;
-
-                document.getElementById('editModal').classList.remove('hidden');
-            } catch (error) {
-                alert("Erro ao abrir o modal.");
-            }
+                    document.getElementById("editModal").classList.remove("hidden");
+                })
+                .catch(error => alert("Erro ao abrir o modal."));
         }
+        // Formata o preço enquanto o usuário digita
+        function formatPrice(input) {
+            let value = input.value.replace(/\D/g, ""); // Remove tudo que não for número
+            let floatValue = parseFloat(value) / 100; // Adiciona a vírgula decimal
+            input.value = floatValue.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Formata o preço quando o modal é aberto
+        function formatPriceOnLoad(price) {
+            return parseFloat(price).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Remove a formatação antes de enviar para o backend
+        function convertPriceToNumber(price) {
+            return price.replace(/\./g, "").replace(",", ".");
+        }
+
+        // Antes de enviar o formulário, converte o preço para formato numérico
+        document.getElementById("editForm").addEventListener("submit", function(e) {
+            let inputPrice = document.getElementById("editPrice");
+            inputPrice.value = convertPriceToNumber(inputPrice.value);
+        });
+
 
         document.getElementById('closeModal').addEventListener('click', function() {
             document.getElementById('editModal').classList.add('hidden');
