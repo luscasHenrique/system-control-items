@@ -20,6 +20,11 @@
         <!-- Barra de pesquisa -->
         <div class="text-center mb-6">
             <input type="text" id="searchBar" placeholder="Pesquisar..." class="w-1/2 p-2 border border-gray-300 rounded-lg">
+            <!-- Botão de limpar filtros -->
+            <button id="clearFilters"
+                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-700 transition duration-200">
+                Limpar Filtros
+            </button>
         </div>
         <?php
         $limit = 9;
@@ -131,18 +136,62 @@
         </div>
     </div>
     <script>
-        document.getElementById('searchBar').addEventListener('input', function() {
-            const searchValue = this.value.toLowerCase().trim();
-            const cards = document.querySelectorAll('.card');
+        document.getElementById('searchBar').addEventListener('input', async function() {
+            const query = this.value.trim();
 
-            cards.forEach(card => {
-                const searchData = (card.getAttribute('data-search') || '').toLowerCase().trim();
-                if (searchData.includes(searchValue)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
+            try {
+                const response = await fetch(`src/search_products.php?query=${encodeURIComponent(query)}`);
+                const result = await response.json();
+
+                const container = document.querySelector('.grid');
+                container.innerHTML = ''; // Limpa os resultados anteriores
+
+                if (result.success) {
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<p class="text-gray-500 text-center col-span-3">Nenhum resultado encontrado.</p>';
+                        return;
+                    }
+
+                    result.data.forEach(row => {
+                        const productId = String(row.id).padStart(6, '0');
+
+                        const card = `
+                    <div class="bg-white p-4 shadow-md rounded-lg text-center card">
+                        <label class="block mb-2">
+                            <input type="checkbox" name="selected[]" value="${row.id}">
+                            Selecionar
+                        </label>
+                        <div id="card-${row.id}" class="flex flex-col items-center gap-1 bg-white p-2 rounded-lg"
+                            style="width: 380px; height: 120px;">
+                            <div class="flex items-center justify-center space-x-4">
+                                <img src="assets/img/Logo.png" alt="Logo" class="h-[80px] w-[80px]">
+                                <canvas id="qrCanvas-${row.id}" class="h-[80px] w-[80px]"></canvas>
+                            </div>
+                            <p class="text-sm font-bold">Código: ${productId}</p>
+                        </div>
+                    </div>
+                `;
+
+                        container.innerHTML += card;
+
+                        // Gerar o QR Code dinamicamente
+                        setTimeout(() => {
+                            new QRious({
+                                element: document.getElementById(`qrCanvas-${row.id}`),
+                                value: row.qrcode,
+                                size: 180
+                            });
+                        }, 100);
+                    });
                 }
-            });
+            } catch (error) {
+                console.error("Erro na pesquisa:", error);
+            }
+        });
+        // ✅ Adicionando a função de limpar filtros
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            document.getElementById('searchBar').value = ''; // Limpa a barra de pesquisa
+            location.reload(); // Recarrega a página para restaurar os dados
         });
 
 
