@@ -105,9 +105,11 @@
                 <button type="button" id="exportPdf" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     Exportar para PDF
                 </button>
-                <button type="button" id="exportImage" class="hidden bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                    Exportar como Imagem
+                <!-- Novo botão para exportar como imagem -->
+                <button type="button" id="exportImageBatch" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    Exportar PNG
                 </button>
+
                 <button type="button" id="exportPdfBatch" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
                     Exportar PDF em Lote
                 </button>
@@ -247,7 +249,8 @@
             pdf.save('selected-cards.pdf');
         });
 
-        document.getElementById('exportImage').addEventListener('click', async () => {
+        // Função para exportar os cards selecionados como imagem PNG
+        document.getElementById('exportImageBatch').addEventListener('click', async () => {
             const selectedCards = document.querySelectorAll('input[name="selected[]"]:checked');
             if (selectedCards.length === 0) {
                 alert('Selecione pelo menos um cartão para exportar.');
@@ -259,17 +262,22 @@
                 const cardElement = document.getElementById(`card-${cardId}`);
                 if (!cardElement) continue;
 
+                // Captura o card como imagem
                 const canvas = await html2canvas(cardElement, {
                     scale: 2
                 });
                 const imgData = canvas.toDataURL('image/png');
 
+                // Cria um link para download automático
                 const link = document.createElement('a');
                 link.href = imgData;
-                link.download = `card_${cardId}.png`;
+                link.download = `etiqueta_${cardId}.png`;
+                document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
             }
         });
+
 
         document.getElementById('exportPdfBatch').addEventListener('click', async () => {
             const selectedCards = document.querySelectorAll('input[name="selected[]"]:checked');
